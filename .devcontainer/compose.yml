@@ -1,0 +1,22 @@
+version: "3"
+name: internship-2025-5days_devcontainer
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    ports:
+      - "18347:5000"
+
+networks:
+  intern-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.11.0/24

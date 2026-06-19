@@ -1,0 +1,3 @@
+minio_data/.minio.sys/
+minio_data/localbucket/*
+!minio_data/localbucket/.gitkeep

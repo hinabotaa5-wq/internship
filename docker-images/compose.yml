@@ -1,0 +1,36 @@
+version: "3"
+name: internship-2025-5days
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: docker-images/Dockerfile
+    environment:
+      - DATABASE_HOST=db
+    hostname: web
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - intern-network
+
+  db:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    hostname: db
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD
+    networks:
+      - intern-network
+
+networks:
+  intern-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.10.0/24

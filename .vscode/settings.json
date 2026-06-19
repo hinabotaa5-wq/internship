@@ -1,0 +1,26 @@
+{
+  "[html]": {
+    "editor.defaultFormatter": "Glavin001.unibeautify-vscode"
+  },
+  "[django-html]": {
+    "editor.defaultFormatter": "Glavin001.unibeautify-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "Glavin001.unibeautify-vscode",
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.defaultFormatter": "Glavin001.unibeautify-vscode",
+    "editor.tabSize": 2
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "editor.formatOnType": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true
+}

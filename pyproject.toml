@@ -1,0 +1,41 @@
+[project]
+name = "web"
+version = "0.1.0"
+description = "NIFTY 5days internship 2025"
+authors = []
+readme = "README.md"
+requires-python = "~= 3.12"
+dependencies = [
+    "Flask~=3.0.3",
+    "Flask-Migrate~=4.0.7",
+    "Flask-SQLAlchemy~=3.1.1",
+    "freezegun~=1.5.1",
+    "python-dateutil~=2.9.0.post0",
+    "requests~=2.32.3",
+    "SQLAlchemy~=2.0.31",
+    "waitress>=3.0.0",
+    "pymysql>=1.1.1",
+    "cryptography>=42.0.8",
+    "flask-login>=0.6.3",
+    "werkzeug>=3.0.3",
+    "flask-wtf>=1.2.1",
+    "flask-admin>=1.6.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "ruff>=0.5.3",
+    "types-python-dateutil~=2.9.0.20240316",
+    "types-requests~=2.32.0.20240622",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+exclude = ["migrations"]

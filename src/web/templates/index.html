@@ -1,0 +1,117 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  トップページ
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5 d-flex justify-content-end gap-5">
+    <a href="{{ url_for('app.auth.signup') }}">新規登録</a>
+    <a href="{{ url_for('app.auth.login') }}">ログイン</a>
+    <a href="{{ url_for('app.auth.logout') }}">ログアウト</a>
+  </div>
+
+  <h1 class="mb-4">Bootstrap サンプルページ</h1>
+
+  <h2>はじめに</h2>
+  <p>
+    今回の課題では<b>利用する技術スタックの制限はありません</b>。フロントエンドフレームワークとして例えば Next.js や SvelteKit などを採用したいと思うなら、それらを利用することも可能です。私達としてはぶっちゃけ Amazon ECS の上で動く Dockerfile さえ作ってくれるなら問題ありません。ただ、それだとどうしても時間と手間が必要になるので、標準的な環境として Flask + Bootstrap によるベースも用意しておきました。今みているページは Flask + Bootstrap でページを作るときに使うかもしれない様々なパーツを配置したサンプルページです。実際に皆さんのアイデアを具現化していく際に、どんなパーツがあってどんなふうに表示されるのか、その参考にしてください。<br>
+    もちろん、Bootstrap では表現の柔軟性が足りないという場合は自前で CSS を書いたり別のツールキットを採用したりしても構いません。とにかく全てを皆さんに委ねます。
+  </p>
+
+  <!-- カード -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">カードのタイトル</h5>
+      <p class="card-text">これはカードの本文です。Bootstrap のカードコンポーネントを使用しています。</p>
+      <a class="btn btn-primary" href="#">詳細を見る</a>
+    </div>
+  </div>
+
+  <!-- アラート -->
+  <div class="alert alert-success" role="alert">
+    これは成功メッセージのアラートです。
+  </div>
+
+  <!-- ボタングループ -->
+  <div class="btn-group mb-4" role="group">
+    <button type="button" class="btn btn-primary">左</button>
+    <button type="button" class="btn btn-secondary">中央</button>
+    <button type="button" class="btn btn-secondary">右</button>
+  </div>
+
+  <!-- フォーム -->
+  <form>
+    <div class="mb-3">
+      <label for="exampleInputEmail1" class="form-label">メールアドレス</label>
+      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+      <div id="emailHelp" class="form-text">あなたのメールアドレスを入力してください。</div>
+    </div>
+    <div class="mb-3">
+      <label for="exampleInputPassword1" class="form-label">パスワード</label>
+      <input type="password" class="form-control" id="exampleInputPassword1">
+    </div>
+    <div class="mb-3 form-check">
+      <input type="checkbox" class="form-check-input" id="exampleCheck1">
+      <label class="form-check-label" for="exampleCheck1">チェックしてください</label>
+    </div>
+    <button type="submit" class="btn btn-primary">送信</button>
+  </form>
+
+  <!-- プログレスバー -->
+  <div class="progress mt-4">
+    <div class="progress-bar" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+  </div>
+
+  <!-- テーブル -->
+  <table class="table table-striped mt-4">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">名前</th>
+        <th scope="col">メールアドレス</th>
+        <th scope="col">役職</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">1</th>
+        <td>山田太郎</td>
+        <td>taro@example.com</td>
+        <td>マネージャー</td>
+      </tr>
+      <tr>
+        <th scope="row">2</th>
+        <td>佐藤花子</td>
+        <td>hanako@example.com</td>
+        <td>デザイナー</td>
+      </tr>
+      <tr>
+        <th scope="row">3</th>
+        <td>鈴木一郎</td>
+        <td>ichiro@example.com</td>
+        <td>エンジニア</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- データベースのユーザー情報 -->
+  <h2 class="mt-5">データベースのユーザー情報</h2>
+  <table class="table table-striped mt-4">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">ユーザー名</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
