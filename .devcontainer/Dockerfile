@@ -5,7 +5,19 @@ ENV TZ Asia/Tokyo
 
 WORKDIR /app
 
-RUN apt update && apt-get install -y git gcc curl default-mysql-client
+RUN apt update && apt-get install -y git gcc curl gpg default-mysql-client
+
+# Claude Code のインストール(公式 apt リポジトリ。Bedrock 経由で利用する)。
+# 公式の推奨はネイティブインストールで、Debian では署名付き apt リポジトリが提供されている。
+# (npm グローバルインストールは代替手段。コンテナではバージョン固定しやすい apt を採用)
+# 参照: https://code.claude.com/docs/ja/setup
+# GPGキー fingerprint: 31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE
+RUN install -d -m 0755 /etc/apt/keyrings \
+  && curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc \
+  && echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+  > /etc/apt/sources.list.d/claude-code.list \
+  && apt-get update \
+  && apt-get install -y claude-code
 
 # watchexec (ファイル変更を監視して再起動するツール) のインストール
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash

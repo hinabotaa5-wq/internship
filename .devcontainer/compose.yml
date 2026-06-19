@@ -1,5 +1,5 @@
 version: "3"
-name: internship-2025-5days_devcontainer
+name: internship-2026-5days_devcontainer
 
 services:
   web:
@@ -12,6 +12,24 @@ services:
         target: /app
     ports:
       - "18347:5000"
+    # Claude Code(Bedrock 経由)用の環境変数。
+    # AWS_BEARER_TOKEN_BEDROCK は配布された Bedrock APIキーを .devcontainer/.env に書いて渡す(下記 env_file)。
+    environment:
+      - CLAUDE_CODE_USE_BEDROCK=1
+      - AWS_REGION=ap-northeast-1
+      # 東京リージョンでは jp.(東京+大阪) 系の推論プロファイルを使う。
+      # セッションの主モデル(既定)。
+      - ANTHROPIC_MODEL=jp.anthropic.claude-sonnet-4-6
+      # /model や opusplan で opus/sonnet/haiku エイリアスを選んだ際の解決先。
+      # これを設定しないと Bedrock では opus→4.6 / sonnet→4.5 の既定(us.系)にフォールバックし、
+      # jp. プロファイルしか許可していない IAM で AccessDenied になりうるため明示ピンする。
+      - ANTHROPIC_DEFAULT_OPUS_MODEL=jp.anthropic.claude-opus-4-8
+      - ANTHROPIC_DEFAULT_SONNET_MODEL=jp.anthropic.claude-sonnet-4-6
+      - ANTHROPIC_DEFAULT_HAIKU_MODEL=jp.anthropic.claude-haiku-4-5-20251001-v1:0
+    # 秘匿情報(Bedrock APIキー)は .env から読み込む。.env は git 管理外(.gitignore 済み)。
+    env_file:
+      - path: .env
+        required: false
 
 networks:
   intern-network:

@@ -1,3 +1,6 @@
 minio_data/.minio.sys/
 minio_data/localbucket/*
 !minio_data/localbucket/.gitkeep
+
+# Bedrock APIキー等の秘匿情報(各自が配布されたキーを記入する)
+.env
