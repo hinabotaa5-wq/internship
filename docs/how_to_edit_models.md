@@ -15,9 +15,9 @@
         hashed_password = DB.Column(DB.String(256))
    +    full_name = DB.Column(DB.String(256))
    ```
-1. 追加した人がやること: `rye run flask db migrate` を実行する
+1. 追加した人がやること: `.venv/bin/flask db migrate` を実行する
    - `migrations` フォルダ以下にマイグレーションファイルが追加されるため、これをコミットしてください。
-1. 全員がやること: `rye run flask db upgrade` を実行する
+1. 全員がやること: `.venv/bin/flask db upgrade` を実行する
    - 追加した人も、追加されたマイグレーションファイルを `git pull` した人も、実際にデータベースに反映するためにこのコマンドを実行する必要があります。
 
 ## 例: もっと違う概念、たとえばアイテムを保存したくなったとき
@@ -30,9 +30,9 @@
        name = DB.Column(DB.String(256))
        amount = DB.Column(DB.Integer)
    ```
-1. 追加した人がやること: `rye run flask db migrate -m "説明を入力"` を実行する
+1. 追加した人がやること: `.venv/bin/flask db migrate -m "説明を入力"` を実行する
    - `migrations` フォルダ以下にマイグレーションファイルが追加されるため、これをコミットしてください。
-1. 全員がやること: `rye run flask db upgrade` を実行する
+1. 全員がやること: `.venv/bin/flask db upgrade` を実行する
    - 追加した人も、追加されたマイグレーションファイルを `git pull` した人も、実際にデータベースに反映するためにこのコマンドを実行する必要があります。
 
 ## どうしてもデータベースのモデルの更新ができない場合（migrate できない、upgrade できない）

@@ -4,9 +4,9 @@
 # このスクリプトは以下の処理を実行します：
 # 1. ローカルDBの削除
 # 2. ローカルmigrationファイルの削除（/migrations/versions/*）
-# 3. rye run flask db init
-# 4. rye run flask db migrate
-# 5. rye run flask db upgrade
+# 3. flask db init
+# 4. flask db migrate
+# 5. flask db upgrade
 
 set -e  # エラーが発生した場合にスクリプトを停止
 
@@ -56,19 +56,19 @@ if [ $counter -ge $timeout ]; then
     exit 1
 fi
 
-# 4. rye run flask db init
+# 4. flask db init
 echo "4. Flask DB初期化中..."
-rye run flask db init
+.venv/bin/flask db init
 echo "   Flask DBの初期化が完了しました"
 
-# 5. rye run flask db migrate
+# 5. flask db migrate
 echo "5. Flask DBマイグレーション作成中..."
-rye run flask db migrate -m "Initial migration"
+.venv/bin/flask db migrate -m "Initial migration"
 echo "   Flask DBマイグレーションの作成が完了しました"
 
-# 6. rye run flask db upgrade
+# 6. flask db upgrade
 echo "6. Flask DBアップグレード中..."
-rye run flask db upgrade
+.venv/bin/flask db upgrade
 echo "   Flask DBアップグレードが完了しました"
 
 echo "=== データベースリセット完了 ==="

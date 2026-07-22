@@ -10,10 +10,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSf https://rye.astral.sh/get | RYE_VERSION="0.35.0" RYE_INSTALL_OPTION="--yes" bash
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
 COPY . .
 
-RUN /root/.rye/shims/rye sync --no-dev
+RUN uv pip sync --system requirements.lock
 
 CMD ["/bin/bash", "/app/docker-images/entrypoint.sh"]
