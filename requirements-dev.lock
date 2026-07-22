@@ -4,19 +4,19 @@
 -e file:.
 alembic==1.13.2
     # via flask-migrate
-blinker==1.8.2
+blinker==1.9.0
     # via flask
-certifi==2024.6.2
+certifi==2026.7.22
     # via requests
-cffi==1.16.0
+cffi==2.1.0
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
-click==8.1.7
+click==8.4.2
     # via flask
-cryptography==42.0.8
+cryptography==49.0.0
     # via web
-flask==3.0.3
+flask==3.1.3
     # via
     #   flask-admin
     #   flask-login
@@ -40,18 +40,19 @@ freezegun==1.5.1
     # via web
 greenlet==3.0.3
     # via sqlalchemy
-idna==3.7
+idna==3.18
     # via requests
 itsdangerous==2.2.0
     # via
     #   flask
     #   flask-wtf
-jinja2==3.1.4
+jinja2==3.1.6
     # via flask
-mako==1.3.5
+mako==1.3.12
     # via alembic
 markupsafe==2.1.5
     # via
+    #   flask
     #   jinja2
     #   mako
     #   werkzeug
@@ -64,7 +65,7 @@ python-dateutil==2.9.0.post0
     # via
     #   freezegun
     #   web
-requests==2.32.3
+requests==2.33.1
     # via web
 ruff==0.12.3
     # via web (pyproject.toml:dev)
@@ -83,13 +84,13 @@ typing-extensions==4.12.2
     # via
     #   alembic
     #   sqlalchemy
-urllib3==2.2.2
+urllib3==2.7.0
     # via
     #   requests
     #   types-requests
-waitress==3.0.0
+waitress==3.0.2
     # via web
-werkzeug==3.0.3
+werkzeug==3.1.8
     # via
     #   flask
     #   flask-login
