@@ -35,7 +35,7 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 - データベース
   - Flask-SQLAlchemy + Flask-Migrate + MySQL
 - パッケージ管理
-  - [rye](https://rye.astral.sh/)
+  - [uv](https://docs.astral.sh/uv/)
 
 ## 開発環境の準備方法
 
@@ -91,17 +91,27 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 
 ### 依存関係の追加
 
-1. `rye add パッケージ名` コマンドを使用して新しい依存関係を追加します。
+1. `pyproject.toml` の `dependencies`（開発用ツールなら `[dependency-groups]` の `dev`）にパッケージ名を追記します。
 
    - (例) `new-package` パッケージを追加する場合
+     ```diff
+      dependencies = [
+          "Flask~=3.0.3",
+     +    "new-package",
+      ]
      ```
-     rye add new-package
-     ```
+
+1. 以下のコマンドを実行してロックファイル（`requirements.lock` / `requirements-dev.lock`）を更新し、コミットします。
+
+   ```
+   uv pip compile pyproject.toml -o requirements.lock
+   uv pip compile pyproject.toml --group dev -o requirements-dev.lock
+   ```
 
 1. (それを `git pull` してきた人は) 以下のコマンドを実行して新しい依存関係をインストールします：
 
    ```
-   rye sync
+   uv pip sync --python .venv/bin/python requirements-dev.lock
    ```
 
 1. そのままコードを編集すれば適宜新しいパッケージが利用できるようになっているはずです。
