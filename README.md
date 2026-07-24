@@ -122,7 +122,5 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 
 - Q. `print()` 関数の結果はどこに表示されますか。
   - A. まず `print()` の代わりに `logging.debug()` を利用してください。アプリのログは Docker Desktop のダッシュボードから確認できます。詳しくは[こちらのドキュメント](docs/how_to_debug.md)を参照ください。
-- Q. ホットリロードするとログインセッションが保たれません。
-  - A. 残念ながら回避することができませんでした...。頻繁にリロードすることになる画面デザイン中は、一旦完成するまで `@login_required` を外すことをおすすめします (`src/web/routes.py` の `secrets()` の実装も参考にしてください) 。
 - Q. ユーザー情報にフルネームなど追加の情報を保存したいです。
   - A. 単純にユーザーモデルに追加するのであれば、`src/web/auth/models.py` の `User` モデルを修正し、Flask-Migrate で反映します。[こちらのドキュメント](docs/how_to_add_additional_user_info.md)も参考まで。

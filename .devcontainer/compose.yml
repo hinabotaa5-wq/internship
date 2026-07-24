@@ -12,6 +12,9 @@ services:
         target: /app
     ports:
       - "18347:5000"
+    environment:
+      # ホットリロード(ファイル変更時のプロセス再起動)でログインセッションが切れないよう固定
+      - SECRET_KEY=devcontainer-fixed-secret-key-not-for-production
 
 networks:
   intern-network:

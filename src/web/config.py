@@ -12,4 +12,6 @@ class Config:
             }
         )
     )
-    SECRET_KEY = os.urandom(24)
+    # devcontainerのホットリロード(watchexecによるプロセス再起動)のたびにSECRET_KEYが
+    # 変わってしまい、ログインセッションが切れるのを防ぐため、環境変数があればそれを使う
+    SECRET_KEY = os.environ.get("SECRET_KEY") or os.urandom(24)
