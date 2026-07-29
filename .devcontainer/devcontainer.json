@@ -1,5 +1,5 @@
 {
-  "name": "internship-2025-5days",
+  "name": "internship-2026-5days",
   "dockerComposeFile": ["../docker-images/compose.yml", "compose.yml"],
   "service": "web",
   "workspaceFolder": "/app",

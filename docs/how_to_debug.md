@@ -17,13 +17,13 @@ def index():
 
 Docker Desktop から確認します。
 
-[Containers]->[internship-2025-5days_devcontainer]->[web-1]の Log タブに出力されます。
+[Containers]->[internship-2026-5days_devcontainer]->[web-1]の Log タブに出力されます。
 
 ## DB の中身を確認する
 
 データが正常に入っている場合か DB の中身を直接確認したい場合は、コンテナの中に入って確認します。
 
-[Containers]->[internship-2025-5days_devcontainer]->[db-1]の Exec タブを選択
+[Containers]->[internship-2026-5days_devcontainer]->[db-1]の Exec タブを選択
 
 パスワードは[compose.yml](../docker-images/compose.yml)の MYSQL_ROOT_PASSWORD を参照
 

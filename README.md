@@ -1,4 +1,4 @@
-# ニフティ 5days インターン 2025 ベースリポジトリ
+# ニフティ 5days インターン 2026 ベースリポジトリ
 
 このリポジトリはニフティの 5days 開発インターンで利用するテンプレートです。
 開発にスムーズに入れるようにするためのテンプレートであって、必ずしもこのスタイルに添う必要はありません。
@@ -55,6 +55,39 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 > ![インタプリタを選ぶボタン](readme_assets/select_interpreter.png)
 > 押すといくつかの選択肢が表示されると思いますが、ここから `.venv/bin/python` が含まれているものを選んでください。
 > ![インタプリタのピッカー](readme_assets/pick_interpreter.png)
+
+## AI(Claude Code)を使った開発
+
+この開発環境には [Claude Code](https://docs.anthropic.com/claude-code) が AWS Bedrock 経由で利用できるよう用意されています。
+
+### 準備
+
+1. メンターから DM で配布された **Bedrock APIキー** を用意します。
+1. `.devcontainer/.env.example` を `.devcontainer/.env` にコピーします。
+
+   ```bash
+   cp .devcontainer/.env.example .devcontainer/.env
+   ```
+
+1. `.devcontainer/.env` を開き、`AWS_BEARER_TOKEN_BEDROCK=` の後ろに配布されたキーを貼り付けます。
+1. Dev Container を再起動(リビルド)します。
+   - VS Code 左下の `><` →「コンテナーのリビルド」(Rebuild Container)。
+
+> [!Note]
+>
+> - `.env` は git 管理外です。キーは他人に共有しないでください。
+> - **利用できる時間帯はインターンの開催時間内のみ**に制限されています(CodeCommit と同じ)。時間外はエラーになります。
+> - 入力したプロンプトはログに記録されます(利用目的・取り扱いは別途案内します)。
+
+### 使い方
+
+コンテナのターミナルで以下を実行します。
+
+```bash
+claude
+```
+
+利用するモデルは東京リージョンの推論プロファイル(`jp.anthropic.claude-*`)が既定で設定されています(`.devcontainer/compose.yml` の `ANTHROPIC_MODEL` 等)。
 
 ## プロジェクトのカスタマイズ
 

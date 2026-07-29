@@ -1,7 +1,7 @@
 [project]
 name = "web"
 version = "0.1.0"
-description = "NIFTY 5days internship 2025"
+description = "NIFTY 5days internship 2026"
 authors = []
 readme = "README.md"
 requires-python = "~= 3.12"
