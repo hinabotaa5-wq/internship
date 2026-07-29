@@ -11,9 +11,10 @@ RUN apt update && apt-get install -y git gcc curl gpg default-mysql-client
 # 公式の推奨はネイティブインストールで、Debian では署名付き apt リポジトリが提供されている。
 # (npm グローバルインストールは代替手段。コンテナではバージョン固定しやすい apt を採用)
 # 参照: https://code.claude.com/docs/ja/setup
-# GPGキー fingerprint: 31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE
 RUN install -d -m 0755 /etc/apt/keyrings \
   && curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc \
+  && gpg --dry-run --quiet --import --import-options import-show /etc/apt/keyrings/claude-code.asc \
+  | grep -q "31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE" \
   && echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
   > /etc/apt/sources.list.d/claude-code.list \
   && apt-get update \
