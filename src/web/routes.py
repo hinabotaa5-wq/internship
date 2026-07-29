@@ -24,7 +24,7 @@ def index():
 
 
 @APP_BP.route("/secret")
-@login_required  # 画面デザイン中はコメントアウトしておくとよい (編集するたびにログインが切れてしまうため)
+@login_required
 def secret():
     logging.debug("シークレットページにアクセスされました")
     # テンプレート内で直接 current_user を使わずに外から明示的に渡してあげると、画面デザ

@@ -35,7 +35,7 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 - データベース
   - Flask-SQLAlchemy + Flask-Migrate + MySQL
 - パッケージ管理
-  - [rye](https://rye.astral.sh/)
+  - [uv](https://docs.astral.sh/uv/)
 
 ## 開発環境の準備方法
 
@@ -124,17 +124,27 @@ claude
 
 ### 依存関係の追加
 
-1. `rye add パッケージ名` コマンドを使用して新しい依存関係を追加します。
+1. `pyproject.toml` の `dependencies`（開発用ツールなら `[dependency-groups]` の `dev`）にパッケージ名を追記します。
 
    - (例) `new-package` パッケージを追加する場合
+     ```diff
+      dependencies = [
+          "Flask~=3.0.3",
+     +    "new-package",
+      ]
      ```
-     rye add new-package
-     ```
+
+1. 以下のコマンドを実行してロックファイル（`requirements.lock` / `requirements-dev.lock`）を更新し、コミットします。
+
+   ```
+   uv pip compile pyproject.toml -o requirements.lock
+   uv pip compile pyproject.toml --group dev -o requirements-dev.lock
+   ```
 
 1. (それを `git pull` してきた人は) 以下のコマンドを実行して新しい依存関係をインストールします：
 
    ```
-   rye sync
+   uv pip sync --python .venv/bin/python requirements-dev.lock
    ```
 
 1. そのままコードを編集すれば適宜新しいパッケージが利用できるようになっているはずです。
@@ -145,7 +155,5 @@ claude
 
 - Q. `print()` 関数の結果はどこに表示されますか。
   - A. まず `print()` の代わりに `logging.debug()` を利用してください。アプリのログは Docker Desktop のダッシュボードから確認できます。詳しくは[こちらのドキュメント](docs/how_to_debug.md)を参照ください。
-- Q. ホットリロードするとログインセッションが保たれません。
-  - A. 残念ながら回避することができませんでした...。頻繁にリロードすることになる画面デザイン中は、一旦完成するまで `@login_required` を外すことをおすすめします (`src/web/routes.py` の `secrets()` の実装も参考にしてください) 。
 - Q. ユーザー情報にフルネームなど追加の情報を保存したいです。
   - A. 単純にユーザーモデルに追加するのであれば、`src/web/auth/models.py` の `User` モデルを修正し、Flask-Migrate で反映します。[こちらのドキュメント](docs/how_to_add_additional_user_info.md)も参考まで。

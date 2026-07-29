@@ -15,6 +15,8 @@ services:
     # Claude Code(Bedrock 経由)用の環境変数。
     # AWS_BEARER_TOKEN_BEDROCK は配布された Bedrock APIキーを .devcontainer/.env に書いて渡す(下記 env_file)。
     environment:
+      # ホットリロード(ファイル変更時のプロセス再起動)でログインセッションが切れないよう固定
+      - SECRET_KEY=devcontainer-fixed-secret-key-not-for-production
       - CLAUDE_CODE_USE_BEDROCK=1
       - AWS_REGION=ap-northeast-1
       # 東京リージョンでは jp.(東京+大阪) 系の推論プロファイルを使う。
