@@ -1,0 +1,124 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  電波の状態をみる
+{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/heatmap.css') }}">
+
+  <div class="hm-page" id="hm-page" data-api-url="{{ api_url }}" data-next-url="{{ diagnosis_url }}">
+
+    <ol class="hm-steps">
+      <li>1. 間取りをつくる</li>
+      <li>2. 機器の場所を決める</li>
+      <li aria-current="step">3. 電波の状態をみる</li>
+    </ol>
+
+    <h1 class="hm-title">お住まいの電波の届きぐあい</h1>
+    <p class="hm-lead">明るいところは電波が強く、暗いところは弱い場所です。機器の丸い印を動かすと、その場で色が変わります。</p>
+
+    <p class="hm-note">表示値は間取りや設定から計算したシミュレーションによる目安です。実際の通信品質を保証するものではありません。</p>
+
+    <div class="hm-main">
+      <div>
+        <div class="hm-card">
+          <div class="hm-canvas-wrap" id="hm-canvas-wrap">
+            <canvas id="hm-canvas" class="hm-canvas" tabindex="0" role="application"
+                    aria-label="電波の届きぐあいの図。場所をタップすると届きぐあいがわかります。機器を選ぶと矢印キーで動かせます。"></canvas>
+            <div class="hm-bubble" id="hm-bubble" role="status" aria-live="polite" hidden></div>
+          </div>
+
+          <ul class="hm-legend" id="hm-legend" aria-hidden="true"></ul>
+          <div class="hm-legend-labels">
+            <span>弱い</span>
+            <span>強い</span>
+          </div>
+          <div class="hm-legend-scale" id="hm-legend-scale" hidden></div>
+
+          <p class="hm-help">丸い印を指またはマウスでドラッグすると機器を動かせます。矢印キーでも動かせます。図のどこかをタップすると、その場所の届きぐあいが出ます。</p>
+
+          <label class="hm-check">
+            <input type="checkbox" id="hm-reflections" checked>
+            <span>壁のはね返りを考える（確認用）</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <div class="hm-card">
+          <h2>いまのおすすめ</h2>
+          <div id="hm-suggestion" class="hm-suggestion" aria-live="polite">
+            <p class="hm-suggestion-message">計算しています…</p>
+          </div>
+        </div>
+
+        <div class="hm-card">
+          <h2>部屋ごとの届きぐあい</h2>
+          <ul class="hm-rooms" id="hm-rooms"></ul>
+          <p class="hm-help" id="hm-rooms-note" hidden>洗面・浴室・トイレ・玄関・廊下は診断の対象外です。</p>
+        </div>
+
+        <div class="hm-card">
+          <h2>ご利用のようす</h2>
+          <p class="hm-help">ここを変えると、足りているかどうかの判定が変わります。</p>
+
+          <label class="hm-field">
+            <span>使う人数</span>
+            <select id="hm-people" class="hm-select"></select>
+          </label>
+
+          <fieldset class="hm-field">
+            <legend>おもな使い方（あてはまるものすべて）</legend>
+            <label class="hm-check"><input type="checkbox" name="hm-use" value="video"><span>動画をみる</span></label>
+            <label class="hm-check"><input type="checkbox" name="hm-use" value="meeting"><span>ビデオ通話をする</span></label>
+            <label class="hm-check"><input type="checkbox" name="hm-use" value="game"><span>ゲームをする</span></label>
+            <label class="hm-check"><input type="checkbox" name="hm-use" value="work"><span>仕事をする</span></label>
+          </fieldset>
+
+          <label class="hm-field">
+            <span>お使いのルーター</span>
+            <select id="hm-router-gen" class="hm-select">
+              <option value="wifi4">古いもの（Wi-Fi 4）</option>
+              <option value="wifi5">数年前のもの（Wi-Fi 5）</option>
+              <option value="wifi6">新しいもの（Wi-Fi 6）</option>
+            </select>
+          </label>
+
+          <label class="hm-field">
+            <span>ご契約のプラン</span>
+            <select id="hm-plan" class="hm-select">
+              <option value="giga1">1ギガ</option>
+              <option value="giga10">10ギガ</option>
+            </select>
+          </label>
+
+          <label class="hm-field">
+            <span>つないでいる電波の種類</span>
+            <select id="hm-band" class="hm-select">
+              <option value="b5">5GHz（速いほう）</option>
+              <option value="b24">2.4GHz（遠くまで届くほう）</option>
+            </select>
+          </label>
+        </div>
+
+        <details class="hm-card hm-details" id="hm-details">
+          <summary>くわしく（数値をみる）</summary>
+          <div id="hm-details-body" class="hm-details-body"></div>
+        </details>
+      </div>
+    </div>
+
+    <div id="hm-toast" class="hm-toast" role="status" aria-live="polite" data-tone="error" hidden></div>
+
+    <div class="hm-actions">
+      <button type="button" id="hm-next" class="hm-btn hm-btn-primary">質問にすすむ</button>
+      <a class="hm-back" href="{{ router_placement_url }}">機器の場所を直す</a>
+      <a class="hm-back" href="{{ layout_url }}">間取りを直す</a>
+      <a class="hm-back" href="{{ url_for('app.index') }}">トップにもどる</a>
+    </div>
+
+    <script type="application/json" id="hm-initial-layout">{{ room_layout | tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='wifi/heatmap_page.js') }}"></script>
+  </div>
+{% endblock %}
