@@ -8,8 +8,8 @@ from .models import DB, Ticket
 
 TICKETS_BP = Blueprint("tickets", __name__, url_prefix="/api/tickets")
 
-# 電話で聞き取りやすいように、見間違いやすい文字 (0/O, 1/I/L) を除いた文字集合を使う
-_TICKET_NUMBER_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+# 電話で聞き取りやすいように、見間違いやすい文字 (0/O, 1/I/L, 2/Z) を除いた文字集合を使う
+_TICKET_NUMBER_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXY3456789"
 _TICKET_NUMBER_LENGTH = 6
 _MAX_GENERATE_ATTEMPTS = 10
 
