@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  診断結果
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5" style="max-width: 640px;">
+    <h1 class="mb-4">診断結果</h1>
+
+    <h2 class="h5">考えられる原因</h2>
+    <p>{{ result.cause_name }}</p>
+
+    <h2 class="h5">判断理由</h2>
+    <p>{{ result.reason }}</p>
+
+    <h2 class="h5">試してほしいこと</h2>
+    <ul>
+      {% for action in result.recommended_action %}
+        <li>{{ action }}</li>
+      {% endfor %}
+    </ul>
+
+    {% if result.show_heatmap %}
+      <div class="alert alert-info">
+        電波の弱い場所をヒートマップで確認できます。
+        <!-- ヒートマップ機能へのリンクは、実装後にここへ追加する -->
+      </div>
+    {% endif %}
+
+    {% if result.support_target %}
+      <h2 class="h5">改善しなかった場合の問い合わせ</h2>
+      <p>{{ result.support_message }}</p>
+      <p class="text-muted">
+        診断ID: {{ result.diagnosis_id }}
+        <!-- 問い合わせページ実装後、この診断IDを渡して連携する -->
+      </p>
+    {% endif %}
+
+    <div class="mt-4">
+      <a href="{{ url_for('app.diagnosis.start') }}">もう一度診断する</a>
+    </div>
+  </div>
+{% endblock %}

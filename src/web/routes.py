@@ -5,11 +5,15 @@ from flask_login import current_user, login_required
 
 from web.auth.models import User
 from web.auth.routes import AUTH_BP
+from web.diagnosis.routes import DIAGNOSIS_BP
 
 APP_BP = Blueprint("app", __name__)
 
 # ログイン用のエンドポイントを追加する
 APP_BP.register_blueprint(AUTH_BP)
+
+# 質問ページ（原因切り分け診断）用のエンドポイントを追加する
+APP_BP.register_blueprint(DIAGNOSIS_BP)
 
 
 @APP_BP.route("/")
