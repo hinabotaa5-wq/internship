@@ -1,0 +1,441 @@
+/* ヒートマップ表示と改善提案の画面スタイル（担当D / 画面4）
+   画面全体はライトテーマのみ。ダークモード切替は作らない（仕様書2章）。
+   ヒートマップだけは例外的に暗い盤面にするが、暗くするのはキャンバスの内側と
+   その凡例だけで、ページ本体はライトのままにする。
+   色は担当Aの theme.css の変数を使い、未読込でも成立するようフォールバックを書く。 */
+
+.hm-page {
+  --hm-bg: var(--color-bg, #ffffff);
+  --hm-bg-subtle: var(--color-bg-subtle, #eef2f7);
+  --hm-text: var(--color-text, #1a2b4c);
+  --hm-text-weak: #4a5b7a;
+  --hm-cta: var(--color-cta, #1e5fd9);
+  --hm-border: #c9d3e3;
+  --hm-good: #17794c;
+  --hm-warn: #a35a00;
+  --hm-error: #b3261e;
+  /* キャンバス内側の暗色（描画側と合わせる） */
+  --hm-board: #0b1524;
+
+  color: var(--hm-text);
+  font-size: 16px;
+}
+
+/* --- ステップ表示 ---
+   共通シェル（担当A）ができたらそちらへ移す。 */
+.hm-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0;
+  margin: 0 0 1rem;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--hm-text-weak);
+}
+
+.hm-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hm-steps li::after {
+  content: "›";
+  color: var(--hm-border);
+}
+
+.hm-steps li:last-child::after {
+  content: "";
+}
+
+.hm-steps li[aria-current="step"] {
+  font-weight: 700;
+  color: var(--hm-cta);
+}
+
+.hm-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.hm-lead {
+  margin: 0 0 1rem;
+  color: var(--hm-text-weak);
+}
+
+/* --- シミュレーションであることの注意文（全画面共通の必須表示） --- */
+.hm-note {
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--hm-text-weak);
+  background: var(--hm-bg-subtle);
+  border-left: 4px solid var(--hm-border);
+  border-radius: 4px;
+}
+
+/* --- 本体レイアウト --- */
+.hm-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .hm-main {
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  }
+}
+
+.hm-card {
+  padding: 1rem;
+  background: var(--hm-bg);
+  border: 1px solid var(--hm-border);
+  border-radius: 8px;
+}
+
+.hm-card + .hm-card {
+  margin-top: 1rem;
+}
+
+.hm-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* --- キャンバス（暗い盤面） --- */
+.hm-canvas-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.hm-canvas {
+  display: block;
+  width: 100%;
+  background: var(--hm-board);
+  border: 1px solid var(--hm-border);
+  border-radius: 6px;
+  /* タッチでキャンバスを触っても画面がスクロールしないようにする */
+  touch-action: none;
+}
+
+.hm-canvas:focus-visible {
+  outline: 3px solid var(--hm-cta);
+  outline-offset: 2px;
+}
+
+/* --- タップ地点の吹き出し --- */
+.hm-bubble {
+  position: absolute;
+  z-index: 1;
+  min-width: 6.5rem;
+  max-width: 12rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--hm-text);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--hm-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(11, 21, 36, 0.35);
+  /* 吹き出しはキャンバスの操作を邪魔しない */
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+}
+
+.hm-bubble[hidden] {
+  display: none;
+}
+
+.hm-bubble-room {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--hm-text-weak);
+}
+
+.hm-bubble-level {
+  display: block;
+  font-weight: 700;
+}
+
+.hm-bubble-value {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--hm-text-weak);
+}
+
+/* --- 凡例（言葉が主役。数値は「くわしく」を開いたときだけ添える） --- */
+.hm-legend {
+  display: flex;
+  gap: 0;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--hm-border);
+  border-radius: 4px;
+}
+
+.hm-legend li {
+  flex: 1 1 0;
+  height: 16px;
+}
+
+.hm-legend-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: var(--hm-text-weak);
+}
+
+.hm-legend-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--hm-text-weak);
+}
+
+/* --- 操作パーツ --- */
+.hm-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hm-text);
+  background: var(--hm-bg);
+  border: 1px solid var(--hm-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hm-btn:hover:not(:disabled) {
+  background: var(--hm-bg-subtle);
+}
+
+.hm-btn:disabled {
+  color: #7a879e;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.hm-btn-primary {
+  color: #ffffff;
+  background: var(--hm-cta);
+  border-color: var(--hm-cta);
+}
+
+.hm-btn-primary:hover:not(:disabled) {
+  background: #174ab0;
+  border-color: #174ab0;
+}
+
+.hm-select {
+  min-height: 44px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: var(--hm-text);
+  background: var(--hm-bg);
+  border: 1px solid var(--hm-border);
+  border-radius: 6px;
+}
+
+.hm-field {
+  display: block;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  border: 0;
+}
+
+.hm-field > span,
+.hm-field > legend {
+  display: block;
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.hm-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-size: 0.9375rem;
+}
+
+.hm-check input {
+  width: 20px;
+  height: 20px;
+}
+
+.hm-help {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--hm-text-weak);
+}
+
+/* --- おすすめ --- */
+.hm-suggestion-message {
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.hm-suggestion-detail {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+  color: var(--hm-text-weak);
+}
+
+.hm-cost {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+.hm-cost[data-free="true"] {
+  color: var(--hm-good);
+  background: #e7f4ed;
+  border: 1px solid #b9dfc9;
+}
+
+.hm-cost[data-free="false"] {
+  color: var(--hm-warn);
+  background: #fdf3e3;
+  border: 1px solid #ecd3a6;
+}
+
+/* --- 部屋ごとの届きぐあい --- */
+.hm-rooms {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hm-rooms li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--hm-bg-subtle);
+}
+
+.hm-rooms li:first-child {
+  border-top: 0;
+}
+
+.hm-room-swatch {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--hm-border);
+  border-radius: 3px;
+}
+
+.hm-room-name {
+  flex: 1 1 auto;
+}
+
+.hm-room-level {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.hm-room-level[data-level="weak"],
+.hm-room-level[data-level="poor"] {
+  color: var(--hm-warn);
+}
+
+.hm-room-level[data-level="good"],
+.hm-room-level[data-level="strong"] {
+  color: var(--hm-good);
+}
+
+/* --- くわしく（数値はここだけに出す） --- */
+.hm-details summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hm-details-body {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--hm-text-weak);
+}
+
+.hm-details-body dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+}
+
+.hm-details-body dt {
+  color: var(--hm-text);
+}
+
+.hm-details-body dd {
+  margin: 0;
+}
+
+/* --- 通知 --- */
+.hm-toast {
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  border-radius: 6px;
+}
+
+.hm-toast[hidden] {
+  display: none;
+}
+
+.hm-toast[data-tone="error"] {
+  color: var(--hm-error);
+  background: #fdecea;
+  border: 1px solid #f3c2bd;
+}
+
+.hm-toast[data-tone="info"] {
+  color: var(--hm-good);
+  background: #e7f4ed;
+  border: 1px solid #b9dfc9;
+}
+
+/* --- 画面下部のCTA --- */
+.hm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+.hm-actions .hm-btn-primary {
+  min-width: 200px;
+}
+
+.hm-back {
+  color: var(--hm-cta);
+  font-size: 0.9375rem;
+}
+
+/* 派手なアニメーションは使わないが、わずかな変化も無効化できるようにする */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

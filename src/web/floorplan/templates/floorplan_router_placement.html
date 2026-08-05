@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  機器の場所を決める
+{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/floorplan.css') }}">
+
+  <div class="fp-page" id="fp-router-page" data-api-url="{{ api_url }}" data-next-url="{{ heatmap_url or diagnosis_url or '' }}">
+
+    <ol class="fp-steps">
+      <li>1. 間取りをつくる</li>
+      <li aria-current="step">2. 機器の場所を決める</li>
+      <li>3. 電波の状態をみる</li>
+    </ol>
+
+    <h1 class="fp-title">いまの機器の場所を教えてください</h1>
+    <p class="fp-lead">ふだん置いてある場所に「親機」を動かしてください。中継機をお使いの場合は、あわせて置いてください。</p>
+
+    <p class="fp-note">表示値は間取りや設定から計算したシミュレーションによる目安です。実際の通信品質を保証するものではありません。</p>
+
+    <div class="fp-main">
+      <div>
+        <div class="fp-card">
+          <div class="fp-canvas-wrap">
+            <canvas id="fp-canvas" class="fp-canvas" tabindex="0" role="application" aria-label="間取り図。親機や中継機を選ぶと矢印キーで動かせます。"></canvas>
+          </div>
+          <p class="fp-help">丸い印を指またはマウスでドラッグすると動かせます。矢印キーでも動かせます。部屋の外には置けません。</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="fp-card">
+          <h2>置いている場所</h2>
+          <p class="fp-size" id="fp-placement"></p>
+          <div class="fp-row">
+            <button type="button" id="fp-select-router" class="fp-btn" aria-pressed="true">親機を動かす</button>
+            <button type="button" id="fp-select-repeater" class="fp-btn" aria-pressed="false" hidden>中継機を動かす</button>
+          </div>
+          <p class="fp-help">動かしたい機器を選んでから、間取り図の上で矢印キーを押してください。</p>
+        </div>
+
+        <div class="fp-card">
+          <h2>中継機</h2>
+          <button type="button" id="fp-toggle-repeater" class="fp-btn">中継機を置く</button>
+          <p class="fp-help">お使いでない場合は置かなくて大丈夫です。</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="fp-toast" class="fp-toast" role="status" aria-live="polite" data-tone="error" hidden></div>
+
+    <div class="fp-actions">
+      {% if heatmap_url or diagnosis_url %}
+        <button type="button" id="fp-next" class="fp-btn fp-btn-primary">
+          {% if heatmap_url %}電波の状態をみる{% else %}質問にすすむ{% endif %}
+        </button>
+      {% endif %}
+      <a class="fp-back" href="{{ layout_url }}">間取りを直す</a>
+      <a class="fp-back" href="{{ url_for('app.index') }}">トップにもどる</a>
+    </div>
+
+    <script type="application/json" id="fp-initial-layout">{{ room_layout | tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='wifi/router_placement_page.js') }}"></script>
+  </div>
+{% endblock %}
