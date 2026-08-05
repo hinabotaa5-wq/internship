@@ -1,0 +1,171 @@
+.diagnosis-page {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.diagnosis-card {
+  width: 100%;
+  max-width: 640px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.diagnosis-card__title {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.diagnosis-card__note {
+  color: #495057;
+  margin-bottom: 16px;
+}
+
+.diagnosis-card__progress {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.diagnosis-error {
+  background: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.diagnosis-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.diagnosis-question-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.diagnosis-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diagnosis-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.diagnosis-option:hover {
+  border-color: #0d6efd;
+  background: #f1f7ff;
+}
+
+.diagnosis-option__input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.diagnosis-option__input:focus-visible {
+  outline: 3px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.diagnosis-option:has(.diagnosis-option__input:checked) {
+  border-color: #0d6efd;
+  background: #e7f1ff;
+}
+
+.diagnosis-option__label {
+  font-size: 1rem;
+}
+
+.diagnosis-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 10px 16px;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.diagnosis-button:focus-visible {
+  outline: 3px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.diagnosis-button--primary {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.diagnosis-button--secondary {
+  background: #e9ecef;
+  color: #212529;
+  margin-top: 8px;
+}
+
+.diagnosis-restart {
+  margin-top: 8px;
+}
+
+.diagnosis-id {
+  margin-top: 16px;
+  font-family: monospace;
+  color: #6c757d;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.diagnosis-result-section {
+  margin-bottom: 20px;
+}
+
+.diagnosis-result-heading {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.diagnosis-heatmap-note {
+  background: #e7f1ff;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.diagnosis-support-message {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  white-space: pre-wrap;
+}
+
+.diagnosis-answers-list {
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .diagnosis-card {
+    padding: 16px;
+  }
+}

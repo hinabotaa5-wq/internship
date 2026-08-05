@@ -5,34 +5,54 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container mt-5" style="max-width: 640px;">
-    <h1 class="mb-4">回線の状態を診断します</h1>
+  <link rel="stylesheet" href="{{ url_for('app.diagnosis.static', filename='diagnosis.css') }}">
 
-    {% if error %}
-      <div class="alert alert-danger" role="alert">{{ error }}</div>
-    {% endif %}
+  <div class="diagnosis-page">
+    <div class="diagnosis-card">
+      <p class="diagnosis-card__progress">
+        質問 {{ answered_count + 1 }}問目
+      </p>
 
-    <form method="post" action="{{ url_for('app.diagnosis.question') }}">
-      <fieldset>
-        <legend class="h5 mb-3">{{ question.text }}</legend>
+      {% if error %}
+        <div class="diagnosis-error" role="alert">{{ error }}</div>
+      {% endif %}
 
-        {% for value, label in question.options %}
-          <div class="form-check mb-2">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="answer"
-              id="answer-{{ value }}"
-              value="{{ value }}"
-            >
-            <label class="form-check-label" for="answer-{{ value }}">
-              {{ label }}
-            </label>
+      <form method="post" action="{{ url_for('app.diagnosis.answer') }}">
+        <fieldset class="diagnosis-fieldset">
+          <legend class="diagnosis-question-text">{{ question.text }}</legend>
+
+          {% if question.description %}
+            <p class="diagnosis-card__note">{{ question.description }}</p>
+          {% endif %}
+
+          <div class="diagnosis-options">
+            {% for option in question.options %}
+              <label class="diagnosis-option" for="answer-{{ option.id }}">
+                <input
+                  class="diagnosis-option__input"
+                  type="radio"
+                  name="answer"
+                  id="answer-{{ option.id }}"
+                  value="{{ option.id }}"
+                >
+                <span class="diagnosis-option__label">{{ option.label }}</span>
+              </label>
+            {% endfor %}
           </div>
-        {% endfor %}
-      </fieldset>
+        </fieldset>
 
-      <button type="submit" class="btn btn-primary mt-4">次へ</button>
-    </form>
+        <button type="submit" class="diagnosis-button diagnosis-button--primary">
+          次へ
+        </button>
+      </form>
+
+      <form method="post" action="{{ url_for('app.diagnosis.restart') }}" class="diagnosis-restart">
+        <button type="submit" class="diagnosis-button diagnosis-button--secondary">
+          最初からやり直す
+        </button>
+      </form>
+
+      <p class="diagnosis-id">診断ID: {{ diagnosis_id }}</p>
+    </div>
   </div>
 {% endblock %}

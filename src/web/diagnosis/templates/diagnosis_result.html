@@ -5,40 +5,82 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container mt-5" style="max-width: 640px;">
-    <h1 class="mb-4">診断結果</h1>
+  <link rel="stylesheet" href="{{ url_for('app.diagnosis.static', filename='diagnosis.css') }}">
 
-    <h2 class="h5">考えられる原因</h2>
-    <p>{{ result.cause_name }}</p>
+  <div class="diagnosis-page">
+    <div class="diagnosis-card">
+      <h1 class="diagnosis-card__title">診断結果</h1>
 
-    <h2 class="h5">判断理由</h2>
-    <p>{{ result.reason }}</p>
+      <section class="diagnosis-result-section">
+        <h2 class="diagnosis-result-heading">考えられる原因</h2>
+        <p>{{ result.cause_name }}</p>
+      </section>
 
-    <h2 class="h5">試してほしいこと</h2>
-    <ul>
-      {% for action in result.recommended_action %}
-        <li>{{ action }}</li>
-      {% endfor %}
-    </ul>
+      <section class="diagnosis-result-section">
+        <h2 class="diagnosis-result-heading">確信度</h2>
+        <p>
+          {% if result.confidence == "high" %}
+            高い
+          {% elif result.confidence == "medium" %}
+            中程度
+          {% else %}
+            低い
+          {% endif %}
+        </p>
+      </section>
 
-    {% if result.show_heatmap %}
-      <div class="alert alert-info">
-        電波の弱い場所をヒートマップで確認できます。
-        <!-- ヒートマップ機能へのリンクは、実装後にここへ追加する -->
-      </div>
-    {% endif %}
+      <section class="diagnosis-result-section">
+        <h2 class="diagnosis-result-heading">判断理由</h2>
+        <p>{{ result.reason }}</p>
+      </section>
 
-    {% if result.support_target %}
-      <h2 class="h5">改善しなかった場合の問い合わせ</h2>
-      <p>{{ result.support_message }}</p>
-      <p class="text-muted">
-        診断ID: {{ result.diagnosis_id }}
-        <!-- 問い合わせページ実装後、この診断IDを渡して連携する -->
-      </p>
-    {% endif %}
+      <section class="diagnosis-result-section">
+        <h2 class="diagnosis-result-heading">試してほしいこと</h2>
+        <ul>
+          {% for action in result.recommended_action %}
+            <li>{{ action }}</li>
+          {% endfor %}
+        </ul>
+      </section>
 
-    <div class="mt-4">
-      <a href="{{ url_for('app.diagnosis.start') }}">もう一度診断する</a>
+      {% if result.show_heatmap %}
+        <section class="diagnosis-result-section diagnosis-heatmap-note">
+          <p>
+            ルーターの設置場所や壁の影響が考えられます。
+            ヒートマップで、家の中の電波状況を確認してください。
+          </p>
+          <!-- ヒートマップページのURL確定後、ここにリンクを設置する -->
+        </section>
+      {% endif %}
+
+      {% if result.support_required %}
+        <section class="diagnosis-result-section">
+          <h2 class="diagnosis-result-heading">改善しなかった場合の問い合わせ</h2>
+          <p>サポート窓口には、次の内容をお伝えください。</p>
+          <p class="diagnosis-support-message">{{ result.support_message }}</p>
+        </section>
+      {% endif %}
+
+      <section class="diagnosis-result-section">
+        <h2 class="diagnosis-result-heading">これまでの回答</h2>
+        <ul class="diagnosis-answers-list">
+          {% for entry in result.answers %}
+            <li>{{ entry.question_id }}: {{ entry.answer_id }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <p class="diagnosis-id">診断ID: {{ result.diagnosis_id }}</p>
+
+      <form method="post" action="{{ url_for('app.diagnosis.restart') }}">
+        <button type="submit" class="diagnosis-button diagnosis-button--primary">
+          診断を最初からやり直す
+        </button>
+      </form>
+
+      <a href="{{ url_for('app.index') }}" class="diagnosis-button diagnosis-button--secondary">
+        トップページへ戻る
+      </a>
     </div>
   </div>
 {% endblock %}
