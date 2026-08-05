@@ -1,10 +1,10 @@
 {#
   ⑦ 結果：原因不明画面（/result/unknown）
 
-  担当Eが中身（断定不可メッセージ・次の行動の提示）を実装する画面。
+  result.confidence が "low"（= engine.py の unknown_issue）と判定された
+  場合に、result_replacement.html の代わりにこちらへ案内する
+  （振り分けはルート側 src/web/wifi/routes.py が行う）。
   前提条件：診断結果があること（requires_diagnosis_result がチェック済み）。
-  確信度が低いと判定された場合に、result_replacement.html の代わりに
-  こちらへ案内する想定（振り分けの判断は診断エンジン側の責務）。
 
   結果画面はどのモジュールを経由してきたかが利用者ごとに異なるため、
   全体を貫くステップ表示は使わない（result_replacement.html と同じ方針）。
@@ -18,21 +18,26 @@
   {{ ui.notice_banner() }}
 
   <div style="display:flex; justify-content:center;">
-    <div style="width: 100%; max-width: 480px;">
-      {#
-        断定不可メッセージ枠：「今の情報だけでは特定できませんでした」に
-        相当するメッセージをここに表示する予定。
-      #}
-      {{ ui.placeholder_frame("断定不可メッセージ枠", height="80px") }}
+    <div style="width: 100%; max-width: 480px; text-align:center;">
+      <h1 style="font-size: var(--font-size-large);">{{ result.cause_name }}</h1>
+      <p style="color: var(--color-text-muted);">{{ result.reason }}</p>
     </div>
   </div>
 
+  {#
+    result.show_heatmap が true の場合だけヒートマップ・間取り作成への
+    導線を出す（result_replacement.html と同じ考え方）。
+  #}
   <div style="display:flex; justify-content:center; gap: var(--space-3); margin-top: var(--space-4);">
-    {% if has_house_layout %}
-      {{ ui.button("ヒートマップで詳しく調べる", url=url_for('app.wifi.heatmap')) }}
-    {% else %}
-      {{ ui.button("間取りを作成して詳しく調べる", url=url_for('app.wifi.layout')) }}
+    {% if result.show_heatmap %}
+      {% if has_house_layout %}
+        {{ ui.button("ヒートマップで詳しく調べる", url=url_for('app.wifi.heatmap')) }}
+      {% else %}
+        {{ ui.button("間取りを作成して詳しく調べる", url=url_for('app.wifi.layout')) }}
+      {% endif %}
     {% endif %}
-    {{ ui.button("このままお問い合わせする", url=url_for('app.wifi.support_id'), variant="secondary") }}
+    {% if result.support_required %}
+      {{ ui.button("このままお問い合わせする", url=url_for('app.wifi.support_id'), variant="secondary") }}
+    {% endif %}
   </div>
 {% endblock %}

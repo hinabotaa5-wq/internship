@@ -25,9 +25,17 @@ CLAUDE.mdには「前提を満たさないルートへの直接アクセスは�
 
 import logging
 
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, request, url_for
 
 from web import wifi_session
+from web.diagnosis.engine import (
+    build_diagnosis_result,
+    determine_next_step,
+    generate_diagnosis_id,
+    get_initial_question,
+    get_question,
+    validate_answer,
+)
 from web.wifi.route_guards import (
     requires_diagnosis_result,
     requires_house_layout,
@@ -96,7 +104,7 @@ def heatmap():
     return render_template("wifi/screens/heatmap.html")
 
 
-@WIFI_BP.route("/diagnosis")
+@WIFI_BP.route("/diagnosis", methods=["GET", "POST"])
 def diagnosis():
     """
     ⑤ 診断質問画面。
@@ -105,15 +113,76 @@ def diagnosis():
     順序関係を持たない独立したモジュールとして位置づける
     （どちらを先に行ってもよく、片方だけで終えてもよい）。
 
-    テンプレート側で「間取り作成へのリンク」を出し分けるために、
-    間取りが作成済みかどうかを has_house_layout として渡す。
-    間取り未作成なら「くわしく調べたい場合は間取りを作成する」という
-    誘導リンクを表示し、作成済みならヒートマップへ戻れるリンクを表示する
-    （実際の分岐はテンプレート側で行う）。
+    質問データ・分岐ロジックは src/web/diagnosis/engine.py
+    （担当Eが実装したもの）を利用する。このルート関数の役割は、
+    セッション状態の読み書き（wifi_session.py 経由）と、
+    質問→次の質問／結果 の画面遷移だけを担当し、
+    「どの質問の次にどの質問が来るか」といった診断のロジック自体は
+    engine.py 側の責務として、ここには書かない
+    （CLAUDE.md 規則6：計算ロジックと診断条件をUIに直書きしない）。
+
+    GET: 現在の質問（診断が未開始なら最初の質問）を表示する。
+    POST: 選ばれた回答を記録し、次の質問または結果画面へ進む。
     """
+    diagnosis_state = wifi_session.get_diagnosis()
+
+    if request.method == "POST":
+        # POSTの際は、diagnosis_state が None（診断未開始）になっているのは
+        # 想定外の状態（フォームの改ざんなど）なので、質問画面を出し直す。
+        if diagnosis_state is None or diagnosis_state.get("current_question_id") is None:
+            return redirect(url_for("app.wifi.diagnosis"))
+
+        current_question_id = diagnosis_state["current_question_id"]
+        answer_id = request.form.get("answer_id")
+
+        if not validate_answer(current_question_id, answer_id):
+            # 不正な回答IDが送られてきた場合、CLAUDE.mdの「エラーは
+            # 何が起きたか＋どうすればいいかを日本語で」に従い、
+            # 同じ質問画面にエラーメッセージ付きで戻す。
+            question = get_question(current_question_id)
+            return render_template(
+                "wifi/screens/diagnosis.html",
+                question=question,
+                error_message="選択肢を選んでからお進みください。",
+                has_house_layout=wifi_session.has_house_layout(),
+            )
+
+        wifi_session.add_diagnosis_answer(current_question_id, answer_id)
+        answers = wifi_session.get_diagnosis()["answers"]
+
+        next_step = determine_next_step(current_question_id, answer_id, answers)
+
+        if next_step["status"] == "result":
+            result = build_diagnosis_result(
+                next_step["cause_id"], answers, diagnosis_state["diagnosis_id"]
+            )
+            wifi_session.save_diagnosis_result(result)
+
+            # 確信度が低い（confidence == "low"）場合は「原因不明」画面へ、
+            # それ以外は「買い替え・対策あり」画面へ振り分ける
+            # （CLAUDE.md 4-3: confidence は high/medium/low の3値）。
+            if result["confidence"] == "low":
+                return redirect(url_for("app.wifi.result_unknown"))
+            return redirect(url_for("app.wifi.result_replacement"))
+
+        wifi_session.set_current_question(next_step["next_question_id"])
+        return redirect(url_for("app.wifi.diagnosis"))
+
+    # GET: 診断がまだ始まっていなければ、新しい診断として開始する。
+    if diagnosis_state is None:
+        diagnosis_id = generate_diagnosis_id()
+        wifi_session.start_diagnosis(diagnosis_id)
+        question = get_initial_question()
+        wifi_session.set_current_question(question["id"])
+    else:
+        current_question_id = diagnosis_state["current_question_id"]
+        question = get_question(current_question_id)
+
     logging.debug("診断質問画面にアクセスされました")
     return render_template(
         "wifi/screens/diagnosis.html",
+        question=question,
+        error_message=None,
         has_house_layout=wifi_session.has_house_layout(),
     )
 
@@ -133,6 +202,7 @@ def result_replacement():
     logging.debug("結果画面（買い替え・対策あり）にアクセスされました")
     return render_template(
         "wifi/screens/result_replacement.html",
+        result=wifi_session.get_diagnosis()["result"],
         has_house_layout=wifi_session.has_house_layout(),
     )
 
@@ -153,6 +223,7 @@ def result_unknown():
     logging.debug("結果画面（原因不明）にアクセスされました")
     return render_template(
         "wifi/screens/result_unknown.html",
+        result=wifi_session.get_diagnosis()["result"],
         has_house_layout=wifi_session.has_house_layout(),
     )
 

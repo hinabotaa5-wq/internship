@@ -326,6 +326,14 @@ def add_diagnosis_answer(question_id: str, answer_id: str) -> None:
     （回答を追加していくだけだと、利用者が『戻る→答えを変える→進む』を
     行った際に、同じ質問への回答が複数件残ってしまうため）。
 
+    さらに、診断の質問は木構造（ある質問の回答によって次の質問が
+    分岐する）になっている。そのため、利用者が過去の質問に戻って
+    以前とは違う選択肢を選んだ場合、その質問より後に記録されていた
+    回答は「もう通らないはずの、古い分岐の記録」になってしまう。
+    古い記録を残したままにすると、診断エンジンに矛盾した回答履歴を
+    渡すことになるため、この関数では「上書きした質問より後に記録されて
+    いた回答」をすべて削除してから、上書きした回答までの履歴だけを残す。
+
     引数:
         question_id - 質問のID（英小文字とアンダースコア）
         answer_id   - 選ばれた回答のID（英小文字とアンダースコア）
@@ -339,16 +347,25 @@ def add_diagnosis_answer(question_id: str, answer_id: str) -> None:
 
     answers = diagnosis.get("answers", [])
 
-    # すでに同じ question_id への回答が記録されていないかを探す。
-    # 見つかった場合はその回答を上書きし、見つからなければ新しく追加する。
-    found_existing_answer = False
-    for answer in answers:
+    # すでに同じ question_id への回答が記録されていないかを、
+    # 記録された順番（古い→新しい）に探す。
+    existing_index = None
+    for index, answer in enumerate(answers):
         if answer["question_id"] == question_id:
-            answer["answer_id"] = answer_id
-            found_existing_answer = True
+            existing_index = index
             break
 
-    if not found_existing_answer:
+    if existing_index is None:
+        # 初めて回答する質問の場合は、そのまま末尾に追加する。
+        answers.append({"question_id": question_id, "answer_id": answer_id})
+    else:
+        # 過去に戻って回答をやり直した場合。
+        # 上書き対象の質問より後ろにある回答は、もう辿らないはずの
+        # 古い分岐の記録なので、まとめて切り落とす。
+        # 例: answers = [q1, q2, q3] で q2 をやり直す場合、
+        #     q3 の回答は分岐が変わって無効になるため、
+        #     answers = [q1, 新しいq2] という形に切り詰める。
+        answers = answers[:existing_index]
         answers.append({"question_id": question_id, "answer_id": answer_id})
 
     diagnosis["answers"] = answers

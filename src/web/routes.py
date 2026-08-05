@@ -13,6 +13,20 @@ APP_BP.register_blueprint(AUTH_BP)
 
 # Wi-Fi診断アプリの画面用のエンドポイントを追加する
 # （トップページ "/" を含め、CLAUDE.md記載の8画面のルートはすべてここに登録されている）
+#
+# 注意：main側にあった DIAGNOSIS_BP（src/web/diagnosis/routes.py）は、
+# ここでは登録しない。DIAGNOSIS_BP は url_prefix="/diagnosis" で
+# "/diagnosis/", "/diagnosis/question", "/diagnosis/result" を提供するが、
+# これは WIFI_BP がすでに提供している "/diagnosis"（診断質問画面）と役割が
+# 重複している。加えて DIAGNOSIS_BP は現状 engine.py に存在しない名前
+# （FIRST_NODE_ID, RESULTS, build_result_payload, resolve_next）を
+# インポートしており、単体ではインポートエラーで起動できない状態だった。
+#
+# 質問データ・分岐ロジック自体（src/web/diagnosis/engine.py）は有用なため
+# ファイルとしては取り込むが、実際に呼び出す口は WIFI_BP 側の
+# /diagnosis ルート（src/web/wifi/routes.py）に実装し直す。
+# UIは共通レイアウト（wifi/base.html）を使い、Bootstrap版の
+# diagnosis_question.html / diagnosis_result.html は使わない。
 APP_BP.register_blueprint(WIFI_BP)
 
 

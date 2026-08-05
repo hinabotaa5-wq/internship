@@ -1,8 +1,10 @@
 {#
   ⑤ 診断質問画面（/diagnosis）
 
-  担当Eが中身（質問文・選択肢一覧・分岐ロジック）を実装する画面。
-  前提条件は「なし」。
+  質問データ・分岐ロジックは src/web/diagnosis/engine.py（担当Eの実装）を
+  使う。この画面は engine.py が返す質問（question）を表示し、選ばれた
+  回答をPOSTで送るだけで、質問同士のつながり（次にどの質問に進むか）は
+  一切書かない（CLAUDE.md 規則6）。
 
   このモジュールの位置づけ：
   間取り作成・ヒートマップ確認（②③④）とは順序関係を持たない、
@@ -11,50 +13,63 @@
     - ヒートマップを見た後に、任意でこの質問に進む
     - この質問に先に答え、あとから間取り作成・ヒートマップに進む
   そのため、他モジュールと合わせた一本のステップ表示は使わない
-  （全体を貫くステッパーは廃止し、モジイールごとにローカルな進捗だけを
-  表示する方針。詳しい経緯はチームでの合意事項を参照）。
+  （全体を貫くステッパーは廃止し、モジュールごとにローカルな進捗だけを
+  表示する方針）。
 
-  ここでのステップ表示は「質問が全体で何問あるうち何問目か」という、
-  診断質問モジュール内だけのローカルな進捗を示す想定
-  （実際の問題数・現在の質問番号は診断エンジン側から渡される値を使う。
-  このプレースホルダーでは仮の値を使っている）。
+  質問は木構造で分岐するため「全体で何問あるか」を事前に確定できない。
+  そのためステップ表示は「今の質問が何問目か」だけを示す、
+  ごく簡単なカウンター表示にする（全質問数は表示しない）。
 #}
 {% extends "wifi/base.html" %}
 {% import "wifi/macros/ui.html" as ui %}
 
 {% block title %}診断質問{% endblock %}
 
-{% block step_indicator %}
-  {#
-    質問の進行度だけを示す、ごく簡単なテキスト表示。
-    実装時は「現在の質問番号 / 全質問数」を診断エンジンから受け取って
-    表示する（例: "質問 2/4"）。
-  #}
-  <span style="font-size: var(--font-size-small); color: var(--color-text-muted);">
-    質問 1/4
-  </span>
-{% endblock %}
-
 {% block content %}
   <div style="display:flex; justify-content:center;">
     <div style="width: 100%; max-width: 480px;">
-      {#
-        質問文枠：診断エンジン（担当E）が生成した質問文をここに表示する予定。
-      #}
-      {{ ui.placeholder_frame("質問文枠", height="60px") }}
+
+      {% if error_message %}
+        {{ ui.error_banner(error_message) }}
+      {% endif %}
 
       {#
-        選択肢一覧枠：選択式の回答候補（ui.choice_card マクロを使う想定）を
-        ここに並べる。
+        質問文枠：engine.py の質問データ（question["text"]）を表示する。
+        question["description"] がある場合は補足として表示する
+        （CLAUDE.md 4-3: 表示文とIDを分離しているため、日本語の文章は
+        ここでそのまま表示してよい。分岐判定にはIDだけを使う）。
       #}
-      <div style="margin-top: var(--space-3);">
-        {{ ui.placeholder_frame("選択肢一覧枠", height="160px") }}
+      <div>
+        <h1 style="font-size: var(--font-size-large); margin: 0 0 var(--space-2);">
+          {{ question.text }}
+        </h1>
+        {% if question.description %}
+          <p style="color: var(--color-text-muted); font-size: var(--font-size-small); margin: 0;">
+            {{ question.description }}
+          </p>
+        {% endif %}
       </div>
-    </div>
-  </div>
 
-  <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
-    {{ ui.placeholder_frame("主CTA枠（次の質問へ）", height="44px") }}
+      {#
+        選択肢一覧枠：question["options"] の各要素は
+        {"id": "...", "label": "..."} の形（engine.py 側の構造）。
+        ラジオボタンにして、選んだ状態のまま送信できるようにする。
+      #}
+      <form method="post" action="{{ url_for('app.wifi.diagnosis') }}">
+        <div style="margin-top: var(--space-3); display:flex; flex-direction:column; gap: var(--space-2);">
+          {% for option in question.options %}
+            <label class="choice-card" style="display:flex; align-items:center; gap: var(--space-2); cursor:pointer;">
+              <input type="radio" name="answer_id" value="{{ option.id }}" required style="width:20px; height:20px;">
+              <span>{{ option.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
+          {{ ui.button("次へ", type="submit") }}
+        </div>
+      </form>
+    </div>
   </div>
 
   {#

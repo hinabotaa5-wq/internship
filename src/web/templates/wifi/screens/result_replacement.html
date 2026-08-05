@@ -1,8 +1,10 @@
 {#
   ⑥ 結果：買い替え・対策あり画面（/result/replacement）
 
-  担当Eが中身（原因・確信度・対策の表示）を実装する画面。
-  前提条件：診断結果があること（requires_diagnosis_result がチェック済み）。
+  原因・確信度・対策の実データは、診断エンジン（engine.py）が生成し
+  wifi_session.py 経由で保存された result（CLAUDE.md 4-3 の構造）を
+  そのまま表示する。前提条件：診断結果があること
+  （requires_diagnosis_result がチェック済み）。
   間取り・ヒートマップの確認有無は問わない
   （質問だけで直接ここに到達した利用者もいるため）。
 
@@ -18,39 +20,54 @@
   {{ ui.notice_banner() }}
 
   {#
-    原因・確信度表示枠：cause_name・confidence をここに表示する予定
-    （CLAUDE.md 4-3 の result 構造に対応）。
+    原因・確信度表示枠：result.cause_name・result.confidence を表示する。
+    confidence の日本語表示（high→高 など）はここ1箇所で変換し、
+    テンプレート内で日本語文字列そのものによる分岐はしない
+    （CLAUDE.md 規則3：表示文とIDを分離する）。
   #}
-  {{ ui.placeholder_frame("原因・確信度表示枠", height="60px") }}
-
-  {#
-    対策一覧枠：recommended_action の一覧をここに表示する予定。
-    足りている場合はこの枠自体を出さず「追加のご契約は不要」の表示に
-    切り替える分岐が入る想定（担当Eの実装時に扱う）。
-  #}
-  <div style="margin-top: var(--space-3);">
-    {{ ui.placeholder_frame("対策一覧枠", height="100px") }}
+  <div>
+    <div style="display:flex; align-items:center; gap: var(--space-2); justify-content:space-between;">
+      <h1 style="font-size: var(--font-size-large); margin:0;">{{ result.cause_name }}</h1>
+      {% set confidence_label = {"high": "高", "medium": "中", "low": "低"}[result.confidence] %}
+      <span class="level-badge level-badge--{{ 'strong' if result.confidence == 'high' else ('good' if result.confidence == 'medium' else 'weak') }}">
+        確信度：{{ confidence_label }}
+      </span>
+    </div>
+    <p style="color: var(--color-text-muted); margin-top: var(--space-2);">{{ result.reason }}</p>
   </div>
 
   {#
-    「くわしく」展開枠：dBm・Mbps等の数値をここでのみ表示する予定
-    （CLAUDE.mdの「専門用語を表に出さない」要件に対応）。
+    対策一覧枠：result.recommended_action の一覧を表示する。
   #}
-  <div style="margin-top: var(--space-3);">
-    {{ ui.placeholder_frame("「くわしく」展開枠", height="44px") }}
+  <div style="margin-top: var(--space-3); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3);">
+    <b style="font-size: var(--font-size-small);">おすすめの対策</b>
+    <ul style="margin: var(--space-2) 0 0; padding-left: var(--space-4);">
+      {% for action in result.recommended_action %}
+        <li>{{ action }}</li>
+      {% endfor %}
+    </ul>
   </div>
 
   {#
-    間取りが未作成の利用者には間取り作成への導線を、
-    すでに作成済みの利用者にはヒートマップ確認への導線を出す
-    （どちらも「より詳しく調べたい場合」の任意の選択肢）。
+    result.show_heatmap が true の原因（電波が関係する原因）の場合だけ、
+    間取り作成／ヒートマップ確認への導線を出す。
+    電源・配線など電波と無関係な原因の場合、ヒートマップを見ても
+    意味がないため、この導線自体を出さない
+    （CLAUDE.md「足りている利用者には何も勧めない」の考え方に合わせ、
+    無関係な機能への誘導もしない）。
   #}
   <div style="display:flex; justify-content:space-between; margin-top: var(--space-4);">
-    {% if has_house_layout %}
-      {{ ui.button("ヒートマップで確認する", url=url_for('app.wifi.heatmap'), variant="secondary") }}
+    {% if result.show_heatmap %}
+      {% if has_house_layout %}
+        {{ ui.button("ヒートマップで確認する", url=url_for('app.wifi.heatmap'), variant="secondary") }}
+      {% else %}
+        {{ ui.button("間取りを作成して確認する", url=url_for('app.wifi.layout'), variant="secondary") }}
+      {% endif %}
     {% else %}
-      {{ ui.button("間取りを作成して確認する", url=url_for('app.wifi.layout'), variant="secondary") }}
+      <span></span>
     {% endif %}
-    {{ ui.button("解決しない場合はお問い合わせ", url=url_for('app.wifi.support_id')) }}
+    {% if result.support_required %}
+      {{ ui.button("解決しない場合はお問い合わせ", url=url_for('app.wifi.support_id')) }}
+    {% endif %}
   </div>
 {% endblock %}
