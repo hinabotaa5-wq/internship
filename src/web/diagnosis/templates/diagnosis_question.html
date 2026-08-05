@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  回線診断
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-5" style="max-width: 640px;">
+    <h1 class="mb-4">回線の状態を診断します</h1>
+
+    {% if error %}
+      <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('app.diagnosis.question') }}">
+      <fieldset>
+        <legend class="h5 mb-3">{{ question.text }}</legend>
+
+        {% for value, label in question.options %}
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="answer"
+              id="answer-{{ value }}"
+              value="{{ value }}"
+            >
+            <label class="form-check-label" for="answer-{{ value }}">
+              {{ label }}
+            </label>
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary mt-4">次へ</button>
+    </form>
+  </div>
+{% endblock %}
