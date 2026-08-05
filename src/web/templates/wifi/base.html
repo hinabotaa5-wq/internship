@@ -1,0 +1,164 @@
+{#
+  このファイルは、Wi-Fi診断アプリの8画面（トップ〜サポートID発行）が
+  共通で使う「土台」となるHTMLテンプレートです。
+
+  Jinja（Flaskで使われるテンプレートエンジン）には「継承」という仕組みがあり、
+  この base.html で block（あとで中身を差し込める穴）をあけておき、
+  各画面のテンプレート（例: layout_edit.html など）が
+
+    extends "wifi/base.html" した上で
+    block content の中に画面ごとの内容を書く
+
+  という形で、この土台を継承して使います。
+  ヘッダー・フッター・共通のCSS/JS読み込みなど「全画面で同じもの」は
+  この1ファイルにまとめておくことで、画面を増やすたびに同じコードを
+  コピペする必要がなくなります。
+
+  注意：既存の src/web/templates/layout.html（Bootstrap版）とは別の
+  ファイルです。認証画面など既存の機能はそのまま layout.html を使い続け、
+  Wi-Fi診断アプリの8画面だけがこの wifi/base.html を使う、という分担です。
+
+  補足：このファイルの中の説明書きは通常のHTMLコメントではなく、
+  Jinja専用のコメント記法で書いている。通常のHTMLコメントの中身も
+  Jinjaはテンプレート構文として解釈してしまうため、
+  説明文中にJinjaの構文例を書くとエラーになることがある。
+  Jinja専用のコメント記法を使えば、書いた内容がHTMLの出力にも
+  一切含まれず、安全に説明を書ける。
+#}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  {#
+    viewport の設定は、スマートフォンでページを表示したときに
+    「PC用の横幅で縮小表示される」のを防ぎ、実際の画面幅に合わせて
+    正しいサイズで表示させるためのおまじない（定型文）。
+    CLAUDE.mdの「PC・スマホ両対応」要件のために必須。
+  #}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {#
+    ブラウザのタブに表示されるタイトル。
+    各画面テンプレートが {% block title %}トップページ{% endblock %} のように
+    上書きすることを想定し、ここではデフォルトの空表示にしておく。
+  #}
+  <title>{% block title %}Wi-Fiかんたん診断{% endblock %}</title>
+
+  {#
+    共通CSS変数（色・余白など）を読み込む。
+    url_for('static', filename=...) を使うことで、CLAUDE.md規則5の
+    「ルートは直書きせず url_for() で解決する」を満たしている。
+    直接 "/static/wifi/css/variables.css" と書いてしまうと、
+    本番環境でチーム名のプレフィックスが付く場合にリンクが壊れてしまう。
+  #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/variables.css') }}">
+
+  {#
+    共通UI部品のCSS。variables.css より後に読み込む必要がある
+    （components.css の中で var(--色の名前) を使っているため、
+    先に変数が定義されていないと色が反映されない）。
+  #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/components.css') }}">
+
+  {#
+    画面ごとに追加のCSSやJSを<head>に入れたい場合のための差し込み穴。
+    何も追加しない画面は、このブロックを何も書かなくてよい（空のままでよい）。
+  #}
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  {#
+    ヘッダー：全画面共通で表示される部分。
+    左側に「戻る」ボタンを固定で置く（フェーズ1で決定した方針）。
+    各画面は個別に戻るボタンを実装する必要はない。
+  #}
+  <header class="wifi-header" style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background-color: var(--color-bg-panel);
+      border-bottom: 1px solid var(--color-border);
+    ">
+    <div style="display: flex; align-items: center; gap: var(--space-3);">
+      {#
+        「戻る」ボタン。
+        ブラウザの「1つ前のページに戻る」機能を使うため、リンク先URLではなく
+        JavaScriptの history.back() を使う。
+        こうすることで、画面ごとに「1つ前はどの画面か」を意識せずに
+        済むようにしている（ブラウザが自動的に前の画面を覚えてくれる）。
+
+        href="#" だけだとページの先頭に飛んでしまうので、
+        onclick で history.back() を呼び、return false でリンクの
+        デフォルトの挙動（ページ移動）を止めている。
+      #}
+      <a href="#" onclick="history.back(); return false;"
+         class="btn btn--ghost" style="min-height: 36px;">
+        ← 戻る
+      </a>
+      <span style="font-weight: 700; color: var(--color-text);">Wi-Fiかんたん診断</span>
+    </div>
+
+    {#
+      ステップ表示の置き場所。
+      各画面が {% block step_indicator %} を上書きすることで、
+      ui.html の stepper マクロをここに差し込める。
+      トップページのようにステップ表示が不要な画面は、何も上書きしなくてよい。
+    #}
+    <div>
+      {% block step_indicator %}{% endblock %}
+    </div>
+  </header>
+
+  {#
+    本体（メインコンテンツ）。
+    各画面テンプレートは、この content ブロックの中に画面固有の内容を書く。
+    container は最大幅を決めて、大きな画面（1440px）でも文字や部品が
+    横に伸びすぎないようにするための、よくあるレイアウトの工夫。
+  #}
+  <main class="wifi-container" style="
+      max-width: 960px;
+      margin: 0 auto;
+      padding: var(--space-4);
+    ">
+    {% block content %}{% endblock %}
+  </main>
+
+  {#
+    フッター：全画面共通で一番下に表示される部分。
+    現時点ではサービス名の表示のみ。今後、利用規約や問い合わせ先などの
+    リンクをここに追加していく想定。
+  #}
+  <footer style="
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: var(--font-size-small);
+      padding: var(--space-5) var(--space-4);
+    ">
+    Wi-Fiかんたん診断
+  </footer>
+
+  {#
+    トースト機能を使うためのJavaScriptモジュールを読み込む。
+    type="module" を付けることで、toast.js の中で使われている
+    export / import（ES Modulesの機能）が使えるようになる。
+    このスクリプトタグをbase.htmlに置いておくことで、
+    Wi-Fi診断アプリのどの画面でも window越しに気にせず
+    showToast() を呼べるようにしたいが、モジュールは自動的に
+    グローバルにはならないため、各画面のJSファイル側で
+    `import { showToast } from ".../toast.js"` のように
+    明示的にimportして使う想定。
+  #}
+  <script type="module" src="{{ url_for('static', filename='wifi/js/toast.js') }}"></script>
+
+  {#
+    画面ごとに追加のJavaScriptを読み込みたい場合の差し込み穴。
+    例えば診断質問画面は、選択肢クリックの処理を書いたJSファイルを
+    ここで読み込む想定。
+  #}
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

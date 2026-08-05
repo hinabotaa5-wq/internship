@@ -1,0 +1,209 @@
+{#
+  このファイルは「Jinjaマクロ」を集めたファイルです。
+
+  Jinjaマクロとは、Pythonの「関数」のようなものをHTMLテンプレートの中で
+  定義できる仕組みです。同じ見た目のHTML（ボタンやカードなど）を
+  何度も書くのではなく、1回マクロとして定義しておき、
+  使いたい場所で {{ macro名(引数) }} のように呼び出すだけで済むようにします。
+
+  このファイルにあるマクロは、components.css で定義したクラス名
+  （.btn, .choice-card, .stepper など）をHTMLに割り当てる役目だけを持ちます。
+  見た目の詳細（色・余白など）はCSS側の責任、
+  「どんな構造のHTMLを組み立てるか」はこのマクロ側の責任、という分担です。
+
+  他の画面のテンプレートからこのファイルを使うには、まずファイルの先頭で
+  以下のように import する必要があります：
+
+    {% import "wifi/macros/ui.html" as ui %}
+
+  そのあとで、例えば以下のようにマクロを呼び出せます：
+
+    {{ ui.button("送信する", url=url_for("app.wifi.support_id")) }}
+#}
+
+{#
+  button マクロ：ボタンを1つ描画する。
+
+  引数:
+    label       - ボタンに表示する文字（例："次へ"）
+    url         - ボタンをクリックしたら移動するリンク先。
+                  指定しない場合は <button> タグ（フォーム送信用など）になる。
+                  ルート（URL）は担当外のファイルで直書きせず、必ず呼び出し側が
+                  url_for() で解決した値をこの引数に渡すこと（CLAUDE.md 規則5）。
+    variant     - ボタンの種類。"primary"（主CTA） / "secondary"（準CTA） / "ghost"（控えめ）。
+    type        - <button> タグを使う場合のtype属性。"button" か "submit" を想定。
+    full_width  - true にすると、ボタンが画面幅いっぱいに広がる。
+#}
+{% macro button(label, url=none, variant="primary", type="button", full_width=false) %}
+  {#
+    variant の値に応じて、CSSクラス名を組み立てる。
+    例: variant="primary" なら "btn btn--primary" という文字列になる。
+    Jinjaでは ~ を使うと文字列同士をつなげる（Pythonの + と同じ役割）。
+  #}
+  {% set css_classes = "btn btn--" ~ variant %}
+  {% if full_width %}
+    {% set css_classes = css_classes ~ " btn--full-width" %}
+  {% endif %}
+
+  {% if url %}
+    {#
+      url が指定されている場合は <a>（リンク）タグとして描画する。
+      role="button" を付けることで、見た目はボタンだが実体はリンクであることを
+      支援技術（読み上げソフトなど）にも伝えられる。
+    #}
+    <a href="{{ url }}" class="{{ css_classes }}" role="button">{{ label }}</a>
+  {% else %}
+    {#
+      url が指定されていない場合は、フォーム送信などに使う <button> タグにする。
+    #}
+    <button type="{{ type }}" class="{{ css_classes }}">{{ label }}</button>
+  {% endif %}
+{% endmacro %}
+
+
+{#
+  choice_card マクロ：診断質問などの「選択肢」を1つ描画する。
+
+  引数:
+    label    - 選択肢に表示する文字（例："はい、特定の部屋だけ遅い"）
+    value    - 選択肢を識別するためのID。日本語の表示文とは別に、
+               英小文字とアンダースコアのID（CLAUDE.md 規則3）を渡す。
+               例: "slow_specific_room"
+    selected - true の場合、選択済みの見た目（is-selectedクラス）にする。
+
+  実際に「クリックしたら選択状態になる」という動きはJavaScript側で
+  data-value 属性を読み取って実装する想定。このマクロはHTMLの構造だけを作る。
+#}
+{% macro choice_card(label, value, selected=false) %}
+  {% set css_classes = "choice-card" %}
+  {% if selected %}
+    {% set css_classes = css_classes ~ " is-selected" %}
+  {% endif %}
+
+  {#
+    data-value 属性に選択肢のID（英小文字＋アンダースコア）を持たせておく。
+    JavaScript側は、日本語の表示文（label）を見て分岐するのではなく、
+    この data-value の値を見て「どの選択肢が選ばれたか」を判定する
+    （CLAUDE.md 規則3：表示文とIDを分離する）。
+  #}
+  <div class="{{ css_classes }}" data-value="{{ value }}" role="button" tabindex="0">
+    {{ label }}
+  </div>
+{% endmacro %}
+
+
+{#
+  stepper マクロ：画面上部の「今どの段階にいるか」を示すステップ表示を描画する。
+
+  引数:
+    steps           - ステップの一覧。以下のような辞書のリストを渡す。
+                      [{"id": "layout", "label": "間取り"}, {"id": "router", "label": "配置"}, ...]
+    current_step_id - 今いるステップのid（例: "router"）。
+                      このidより前にあるステップは「完了済み（is-done）」、
+                      一致するステップは「現在地（is-active）」、
+                      それより後は「未到達（何も付かない）」として描画する。
+#}
+{% macro stepper(steps, current_step_id) %}
+  {#
+    現在のステップに到達したかどうかを覚えておくための目印（フラグ）。
+
+    注意（Jinjaのやや特殊なルール）：
+    Jinjaの {% for %} ループの中で {% set 変数名 = 値 %} をすると、
+    その変数は「そのループ1回分だけ」のローカルな変数になってしまい、
+    次の繰り返しには値が引き継がれない（Pythonの通常の変数とは違う挙動）。
+    そのため、単純に {% set reached_current = false %} だけをループの外で
+    書いても、ループの中で true に変更してもループの外の値は変わらない。
+
+    この問題を避けるために namespace() という特別な仕組みを使う。
+    namespace() で作ったオブジェクト（ここでは ns という名前にした）の
+    属性（ns.reached_current）に値を入れると、ループを何度繰り返しても
+    値がちゃんと保持される。
+  #}
+  {% set ns = namespace(reached_current=false) %}
+
+  <div class="stepper">
+    {% for step in steps %}
+      {% if step.id == current_step_id %}
+        {#
+          現在いるステップと一致する場合は、"is-active"（現在地）にする。
+          このタイミングで ns.reached_current を true にすることで、
+          次のループ以降のステップが「未到達」として描画されるようにする。
+        #}
+        <span class="stepper__step is-active">{{ loop.index }}</span>
+        {% set ns.reached_current = true %}
+      {% elif ns.reached_current %}
+        {#
+          すでに現在地を通り過ぎた後（＝まだ来ていない未来のステップ）なので、
+          何もクラスを追加しない（グレーのまま）。
+        #}
+        <span class="stepper__step">{{ loop.index }}</span>
+      {% else %}
+        {#
+          まだ現在地に到達していない、かつ現在地でもない
+          ＝すでに完了したステップなので "is-done" にする。
+        #}
+        <span class="stepper__step is-done">{{ loop.index }}</span>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {#
+    ステップの名前（日本語ラベル）も、番号の下に小さく一覧表示しておく。
+    利用者が数字だけでなく「今何をしているか」を文字でも確認できるようにする。
+  #}
+  <div class="stepper-labels" style="display:flex; gap: var(--space-2); font-size: var(--font-size-small); color: var(--color-text-muted);">
+    {% for step in steps %}
+      <span>{{ step.label }}</span>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+
+{#
+  toggle マクロ：ON/OFFのチェックボックス（トグルスイッチ）を描画する。
+
+  引数:
+    label   - スイッチの横に表示する説明文（例："反射を考慮する"）
+    name    - フォーム送信時に使われる name 属性（サーバー側でこの名前で値を受け取る）
+    checked - true の場合、最初からON（チェック済み）の状態にする
+#}
+{% macro toggle(label, name, checked=false) %}
+  <label class="toggle">
+    <input type="checkbox" name="{{ name }}" {% if checked %}checked{% endif %}>
+    <span>{{ label }}</span>
+  </label>
+{% endmacro %}
+
+
+{#
+  notice_banner マクロ：シミュレーション注意文を描画する。
+
+  CLAUDE.md により、この文言は関連する全画面で「同じ文言」を出す必要がある。
+  文言をコピペで各テンプレートに書くと、後で文言を変えるときに
+  全部の画面を1つずつ直す必要が出てしまう。
+  そこで、このマクロを呼ぶだけで済むようにし、文言はここ1箇所だけで管理する。
+
+  引数を取らない（呼び出し側は何も渡さず {{ ui.notice_banner() }} と書くだけでよい）。
+#}
+{% macro notice_banner() %}
+  <div class="notice-banner" role="note">
+    表示値は間取りや設定から計算したシミュレーションによる目安です。実際の通信品質を保証するものではありません。
+  </div>
+{% endmacro %}
+
+
+{#
+  error_banner マクロ：エラーメッセージを描画する。
+
+  CLAUDE.md の「エラーは『何が起きたか』＋『どうすればいいか』を日本語で。
+  コードだけ出さない」という要件があるため、message には
+  「何が起きたか」と「どうすればいいか」の両方を含む文章を渡すこと。
+
+  引数:
+    message - 表示するエラーメッセージ本文（日本語の文章）
+#}
+{% macro error_banner(message) %}
+  <div class="error-banner" role="alert">
+    {{ message }}
+  </div>
+{% endmacro %}

@@ -1,0 +1,343 @@
+/*
+ * このファイルは「共通UI部品」のスタイル（見た目）を定義するファイルです。
+ *
+ * ここで定義するクラス（.btn や .choice-card など）は、Wi-Fi診断アプリの
+ * どの画面からも使い回せる「パーツ」です。各担当（B・D・E）は、この
+ * クラス名をHTMLに付けるだけで、共通の見た目・触り心地のボタンやカードを
+ * 使えるようになります。
+ *
+ * 色や余白の実際の値はこのファイルには書かず、variables.css で定義した
+ * CSS変数（var(--色の名前) など）を経由して使います。
+ * そうすることで、色を変えたいときに variables.css だけを直せば済みます。
+ *
+ * このファイルを使う画面では、variables.css を先に読み込んでおく必要があります。
+ * （wifi/base.html で <link> タグを2つ、variables.css → components.css の順に読み込む）
+ */
+
+/* ============================================================
+ * ボタン（.btn）
+ * ============================================================
+ * 使い方の例：
+ *   <button class="btn btn--primary">送信する</button>
+ *   <button class="btn btn--secondary">やめる</button>
+ *   <button class="btn btn--ghost">キャンセル</button>
+ *
+ * .btn が「共通の形（サイズ・角丸・文字の太さなど）」を決め、
+ * .btn--primary などの修飾クラスが「色（見た目のバリエーション）」を決める。
+ * この「共通の形 + 見た目のバリエーション」という分け方を BEM という
+ * 命名手法にならって --（ハイフン2つ）で表現している。
+ */
+.btn {
+  /* インライン要素だが、ブロックのように幅・高さを持たせたいので inline-flex にする */
+  display: inline-flex;
+  /* ボタンの中の文字を上下左右中央に揃える */
+  align-items: center;
+  justify-content: center;
+
+  /* CLAUDE.md の「押せるものは44px以上」を満たすための最小の高さ */
+  min-height: var(--touch-target-min);
+  /* 左右の余白（パディング）。上下は min-height に任せる */
+  padding: 0 var(--space-4);
+
+  /* 角丸の大きさ */
+  border-radius: var(--radius-md);
+  /* デフォルトでは枠線なし（primaryなど枠線が必要なものは個別に上書きする） */
+  border: none;
+
+  /* ボタンの文字サイズと太さ */
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  font-family: var(--font-family-base);
+
+  /* マウスを乗せると「押せる」ことがわかるように指カーソルにする */
+  cursor: pointer;
+
+  /* 色が変わるときにアニメーションさせる（prefers-reduced-motion対応は下部で無効化） */
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* 主CTA（一番押してほしいボタン）：背景が青、文字が白 */
+.btn--primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+.btn--primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* 準CTA（2番目の選択肢）：背景は白、枠と文字が青 */
+.btn--secondary {
+  background-color: var(--color-bg-panel);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+.btn--secondary:hover {
+  background-color: var(--color-bg);
+}
+
+/* 目立たせたくないボタン（例：キャンセル）：枠がグレー、文字も控えめな色 */
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.btn--ghost:hover {
+  background-color: var(--color-bg);
+}
+
+/* 画面幅いっぱいに広げたいときに付ける修飾クラス（例：スマホ画面の下部CTA） */
+.btn--full-width {
+  width: 100%;
+}
+
+/* ============================================================
+ * 選択肢カード（.choice-card）
+ * ============================================================
+ * 診断質問画面（⑤）などで「選択肢を1つ選ぶ」UIに使うカード。
+ * クリックして選ばれた状態になったら、JavaScript側で
+ * "is-selected" というクラスを付け外しする想定（IDや日本語文字列では判定しない）。
+ *
+ * 使い方の例：
+ *   <div class="choice-card">選択肢A</div>
+ *   <div class="choice-card is-selected">選択肢B（選ばれている）</div>
+ */
+.choice-card {
+  /* カードの外枠 */
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-panel);
+
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-2);
+
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+.choice-card:hover {
+  border-color: var(--color-primary);
+}
+/* 選ばれているカードは、枠を主CTAと同じ青にして、背景もわずかに青くする */
+.choice-card.is-selected {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  background-color: #eef4ff;
+}
+
+/* ============================================================
+ * ステッパー（.stepper）＝画面上部の「今どの段階にいるか」を示す表示
+ * ============================================================
+ * CLAUDE.mdの「ステップ表示を出す」という要件を満たすための部品。
+ *
+ * 使い方の例：
+ *   <div class="stepper">
+ *     <span class="stepper__step is-done">1</span>
+ *     <span class="stepper__step is-active">2</span>
+ *     <span class="stepper__step">3</span>
+ *   </div>
+ *
+ * is-done   = すでに完了したステップ（緑）
+ * is-active = 今まさにいるステップ（青）
+ * 何も付かない = まだ来ていないステップ（グレー）
+ */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stepper__step {
+  /* 丸いバッジの形にする */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+
+  /* デフォルト（まだ来ていないステップ）はグレー系 */
+  background-color: var(--color-border);
+  color: white;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+
+  transition: background-color var(--transition-fast);
+}
+.stepper__step.is-active {
+  background-color: var(--color-primary);
+}
+.stepper__step.is-done {
+  background-color: var(--color-success);
+}
+
+/* ============================================================
+ * トグル（.toggle）＝ON/OFFの切り替えスイッチ
+ * ============================================================
+ * 例：ヒートマップ画面（④）の「反射を考慮する」チェックボックス。
+ *
+ * 使い方の例：
+ *   <label class="toggle">
+ *     <input type="checkbox" />
+ *     <span>反射を考慮する</span>
+ *   </label>
+ *
+ * 見た目は通常のチェックボックスをそのまま使い、サイズだけ
+ * 44px（touch-target-min）を確保することで、スマホでも押しやすくする。
+ */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target-min);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.toggle input[type="checkbox"] {
+  /* チェックボックス自体も大きくして押しやすくする */
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* ============================================================
+ * 注意文バナー（.notice-banner）
+ * ============================================================
+ * 「表示値はシミュレーションによる目安です」という決まった注意文を
+ * 表示するための専用の見た目。文言自体はJinjaマクロ側で埋め込むので、
+ * ここでは「枠の見た目」だけを定義する。
+ */
+.notice-banner {
+  background-color: #eef2ff;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+/* ============================================================
+ * エラー表示（.error-banner / .error-text）
+ * ============================================================
+ * CLAUDE.mdの「エラーは『何が起きたか』＋『どうすればいいか』を日本語で」
+ * という要件を満たすための表示枠。
+ */
+.error-banner {
+  background-color: #fef2f2;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+/* 文章の一部だけを赤くしたいとき用の、枠なしバージョン */
+.error-text {
+  color: var(--color-danger);
+  font-size: var(--font-size-small);
+}
+
+/* ============================================================
+ * 電波レベルバッジ（.level-badge）
+ * ============================================================
+ * 4-2のデータ契約にある room_summaries[].level（"strong"|"good"|"weak"|"poor"）
+ * を表示するための小さいラベル。
+ *
+ * 使い方の例：
+ *   <span class="level-badge level-badge--strong">良好</span>
+ *
+ * 表示する日本語（「良好」など）はテンプレート側で出し分ける。
+ * このCSSは色だけを決める。
+ */
+.level-badge {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: 10px;
+  color: white;
+  font-size: var(--font-size-small);
+  font-weight: bold;
+}
+.level-badge--strong { background-color: var(--color-level-strong); }
+.level-badge--good   { background-color: var(--color-level-good); }
+.level-badge--weak   { background-color: var(--color-level-weak); }
+.level-badge--poor   { background-color: var(--color-level-poor); }
+
+/* ============================================================
+ * トースト（.toast-container / .toast）
+ * ============================================================
+ * 画面上部中央に一時的に表示される通知メッセージ。
+ * 実際の表示・非表示のタイミングは js/toast.js が JavaScript で制御する。
+ * このCSSは「表示されているときの見た目・位置」だけを決める。
+ */
+
+/* トーストを並べて表示するための入れ物。画面に対して固定位置に置く */
+.toast-container {
+  /* position: fixed により、スクロールしても常に同じ場所に表示される */
+  position: fixed;
+  /* 画面上部から少し離す */
+  top: var(--space-4);
+  /* 左右中央に配置するための定番テクニック：
+     left: 50% で要素の左端を画面中央に置き、
+     transform: translateX(-50%) で要素自身の幅の半分だけ左にずらして、
+     結果的に要素全体が画面の水平中央にくるようにする */
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* 他の要素より必ず手前（上）に表示されるようにする */
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  /* トースト自体は横幅を持つが、入れ物は画面幅を超えないようにする */
+  max-width: calc(100vw - var(--space-4) * 2);
+}
+
+/* トースト1個分の見た目 */
+.toast {
+  background-color: var(--color-text);
+  color: white;
+  font-size: var(--font-size-base);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  /* 少し立体感を出す影 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+  /* 表示・非表示をふわっと切り替えるためのアニメーション対象 */
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+/* JavaScript側で is-visible クラスを付けると、フェードインして表示される */
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* レベルごとの色分け（情報・成功・注意・エラー） */
+.toast--info    { background-color: var(--color-text); }
+.toast--success { background-color: var(--color-success); }
+.toast--warning { background-color: var(--color-warning); }
+.toast--error   { background-color: var(--color-danger); }
+
+/* ============================================================
+ * アニメーションを減らす設定（アクセシビリティ対応）
+ * ============================================================
+ * prefers-reduced-motion は、OS側で「アニメーションを減らす」設定に
+ * している利用者向けのCSSメディアクエリ。
+ * CLAUDE.mdの「prefers-reduced-motion を尊重する」という要件を満たすため、
+ * この設定が有効な場合はすべてのトランジション（変化のアニメーション）を
+ * 実質的に無効化する（時間を0にする）。
+ */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .choice-card,
+  .stepper__step,
+  .toast {
+    transition-duration: 0.001ms;
+  }
+}
