@@ -1,0 +1,23 @@
+/* ライトテーマ共通CSS変数（担当A基盤） */
+:root {
+  --color-bg: #ffffff;
+  --color-bg-subtle: #eef2f7;
+  --color-text: #1a2b4c;
+  --color-cta: #1e5fd9;
+  --color-cta-hover: #174ab0;
+}
+
+body {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.btn-primary {
+  background-color: var(--color-cta);
+  border-color: var(--color-cta);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-cta-hover);
+  border-color: var(--color-cta-hover);
+}

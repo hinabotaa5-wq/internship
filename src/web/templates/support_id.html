@@ -1,0 +1,75 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  送信内容の確認
+{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">送信内容の確認</h1>
+
+  {% if diagnosis_state is none %}
+    <div class="alert alert-warning">
+      診断データが見つかりません。間取り作成・Q&Aから診断をやり直してください。
+    </div>
+  {% else %}
+    <p>以下の内容でコールセンターへの問い合わせを登録します。内容をご確認のうえ「送信する」を押してください。</p>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">間取り・機器配置</h5>
+        <pre id="room-layout-preview" class="bg-light p-3 rounded">{{ diagnosis_state.room_layout | tojson(indent=2) }}</pre>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Q&A 回答履歴</h5>
+        <pre id="qa-history-preview" class="bg-light p-3 rounded">{{ diagnosis_state.qa_history | tojson(indent=2) }}</pre>
+      </div>
+    </div>
+
+    <button id="submit-btn" type="button" class="btn btn-primary">送信する</button>
+    <div id="submit-result" class="mt-3"></div>
+
+    <script>
+      const CREATE_URL = "{{ url_for('app.tickets.create_ticket') }}";
+      const DIAGNOSIS_STATE = {{ diagnosis_state | tojson }};
+
+      function renderError(container, message) {
+        const div = document.createElement("div");
+        div.className = "alert alert-danger mb-0";
+        div.textContent = message;
+        container.replaceChildren(div);
+      }
+
+      function renderSuccess(container, ticketNumber) {
+        const div = document.createElement("div");
+        div.className = "alert alert-success mb-0";
+        div.textContent = `受付番号: ${ticketNumber}`;
+        container.replaceChildren(div);
+      }
+
+      document.getElementById("submit-btn").addEventListener("click", async () => {
+        const resultEl = document.getElementById("submit-result");
+        try {
+          const res = await fetch(CREATE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              room_layout: DIAGNOSIS_STATE.room_layout,
+              qa_history: DIAGNOSIS_STATE.qa_history,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            renderError(resultEl, data.description || "送信に失敗しました");
+            return;
+          }
+          renderSuccess(resultEl, data.ticket_number);
+        } catch (err) {
+          renderError(resultEl, "通信エラーが発生しました");
+        }
+      });
+    </script>
+  {% endif %}
+{% endblock %}
