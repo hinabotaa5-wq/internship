@@ -616,7 +616,7 @@ def determine_next_step(
 def generate_diagnosis_id() -> str:
     """`HM-YYYYMMDD-XXXXXX` 形式の診断IDを発行する。"""
     today = date.today().strftime("%Y%m%d")
-    suffix_chars = "ABCDEFGHJKMNPQRSTUVWXY3456789"
+    suffix_chars = "ABCDEFGHJKMNPRSTUVWXY345678"
     suffix = "".join(secrets.choice(suffix_chars) for _ in range(6))
     return f"HM-{today}-{suffix}"
 

@@ -26,8 +26,8 @@
 
 ### 受付番号のルール
 
-- 形式: `NIF-` + 6文字（`_TICKET_NUMBER_ALPHABET` = `ABCDEFGHJKMNPQRSTUVWXY3456789`）
-- 電話で聞き取る際に見間違いやすい文字（`0`/`O`、`1`/`I`/`L`、`2`/`Z`）は除外している
+- 形式: `NIF-` + 6文字（`_TICKET_NUMBER_ALPHABET` = `ABCDEFGHJKMNPRSTUVWXY345678`）
+- 電話で聞き取る際に見間違いやすい文字（`0`/`O`、`1`/`I`/`L`、`2`/`Z`、`9`/`Q`）は除外している
 - `secrets.choice` を使い推測されにくい値を生成している
 - 生成した番号が既存レコードと衝突した場合（`IntegrityError`）は、最大10回まで自動的に再生成してリトライする（`src/web/tickets.py` の `_MAX_GENERATE_ATTEMPTS`）
 
