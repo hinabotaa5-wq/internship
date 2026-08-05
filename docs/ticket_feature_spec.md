@@ -55,8 +55,13 @@
 ```json
 {
   "room_layout": {
-    "walls": [[0, 0], [10, 0], [10, 10], [0, 10]],
-    "router": { "x": 5, "y": 5 }
+    "rooms": [
+      { "id": "r1", "name": "リビング", "type": "ldk", "x": 0, "y": 0, "width": 6, "height": 5 }
+    ],
+    "walls": [
+      { "x1": 0, "y1": 0, "x2": 6, "y2": 0, "material": "concrete" }
+    ],
+    "router": { "x": 4.5, "y": 7.0 }
   },
   "qa_history": [
     { "q": "ルーターの電波が弱い", "a": "金属家具から離してください" }
@@ -93,8 +98,13 @@ GET /api/tickets/NIF-4F7K2Q
 {
   "ticket_number": "NIF-4F7K2Q",
   "room_layout": {
-    "walls": [[0, 0], [10, 0], [10, 10], [0, 10]],
-    "router": { "x": 5, "y": 5 }
+    "rooms": [
+      { "id": "r1", "name": "リビング", "type": "ldk", "x": 0, "y": 0, "width": 6, "height": 5 }
+    ],
+    "walls": [
+      { "x1": 0, "y1": 0, "x2": 6, "y2": 0, "material": "concrete" }
+    ],
+    "router": { "x": 4.5, "y": 7.0 }
   },
   "qa_history": [
     { "q": "ルーターの電波が弱い", "a": "金属家具から離してください" }
@@ -145,8 +155,13 @@ GET /api/tickets/NIF-4F7K2Q
 ```json
 {
   "room_layout": {
-    "walls": [[0, 0], [10, 0], [10, 10], [0, 10]],
-    "router": { "x": 5, "y": 5 }
+    "rooms": [
+      { "id": "r1", "name": "リビング", "type": "ldk", "x": 0, "y": 0, "width": 6, "height": 5 }
+    ],
+    "walls": [
+      { "x1": 0, "y1": 0, "x2": 6, "y2": 0, "material": "concrete" }
+    ],
+    "router": { "x": 4.5, "y": 7.0 }
   },
   "qa_history": [
     { "q": "ルーターの電波が弱い", "a": "金属家具から離してください" }

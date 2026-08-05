@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 
 from web.auth.models import User
 from web.auth.routes import AUTH_BP
+from web.session import get_diagnosis_session
 from web.tickets import TICKETS_BP
 
 APP_BP = Blueprint("app", __name__)
@@ -57,3 +58,10 @@ def test_ticket():
 def staff_ticket():
     logging.debug("コールセンター向け問い合わせ照会ページにアクセスされました")
     return render_template("staff_ticket.html")
+
+
+@APP_BP.route("/support-id")
+def support_id():
+    logging.debug("送信前確認ページ（画面8）にアクセスされました")
+    diagnosis_state = get_diagnosis_session()
+    return render_template("support_id.html", diagnosis_state=diagnosis_state)
