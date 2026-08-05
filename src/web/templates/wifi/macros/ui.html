@@ -207,3 +207,25 @@
     {{ message }}
   </div>
 {% endmacro %}
+
+
+{#
+  placeholder_frame マクロ：「UIを置く枠」だけを描画する。
+
+  現在のフェーズでは、各画面の中身（間取りキャンバスの実際の描画や
+  ドラッグ操作など）はまだ実装しない方針（docs/design/screens_and_flow.pdf
+  の「枠取り図」と同じ考え方）。
+  このマクロは、点線の空き枠と、その枠の役割を示す小さな文字だけを表示する。
+  実装が進むタイミングで、この呼び出し部分を実際のHTML/JSに差し替えていく。
+
+  引数:
+    label  - 枠の役割を示す文字（例："間取りキャンバス枠"）。
+             実際の画面に表示される文言ではなく、開発中の目印。
+    height - 枠の高さ（CSSの値をそのまま文字列で渡す。例: "320px"）。
+             指定しない場合はCSS側のデフォルト（min-height: 80px）になる。
+#}
+{% macro placeholder_frame(label, height=none) %}
+  <div class="ui-placeholder"{% if height %} style="height: {{ height }};"{% endif %}>
+    {{ label }}
+  </div>
+{% endmacro %}

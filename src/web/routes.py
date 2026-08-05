@@ -3,24 +3,17 @@ import logging
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
-from web.auth.models import User
 from web.auth.routes import AUTH_BP
+from web.wifi.routes import WIFI_BP
 
 APP_BP = Blueprint("app", __name__)
 
 # ログイン用のエンドポイントを追加する
 APP_BP.register_blueprint(AUTH_BP)
 
-
-@APP_BP.route("/")
-def index():
-    # ログ出力の方法
-    logging.debug("トップページにアクセスされました")
-
-    # データベースからすべてのユーザーを取得
-    users = User.query.all()
-
-    return render_template("index.html", users=users)
+# Wi-Fi診断アプリの画面用のエンドポイントを追加する
+# （トップページ "/" を含め、CLAUDE.md記載の8画面のルートはすべてここに登録されている）
+APP_BP.register_blueprint(WIFI_BP)
 
 
 @APP_BP.route("/secret")

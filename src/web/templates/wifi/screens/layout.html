@@ -1,0 +1,53 @@
+{#
+  ② 住宅レイアウト作成画面（/layout）
+
+  担当Bが中身（間取りキャンバスの描画・ひな形選択・部屋の追加や移動）を
+  実装する画面。このフェーズでは枠だけを配置する。
+
+  ステップ表示について：
+  「間取り作成→ルーター配置→ヒートマップ」の3画面は、この順番でしか
+  進めない一本道のモジュールなので、このモジュール内だけで完結する
+  3段階のステップ表示を使う。
+  診断質問（⑤）はこのモジュールと順序関係を持たない別モジュールのため、
+  このステップ表示には含めない
+  （利用者は間取りを作らず質問だけを行うこともできるし、
+  逆に質問より先にヒートマップだけ見て終わることもできるため）。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}住宅レイアウト作成{% endblock %}
+
+{% block step_indicator %}
+  {{ ui.stepper(
+       [
+         {"id": "layout", "label": "間取り"},
+         {"id": "router", "label": "配置"},
+         {"id": "heatmap", "label": "ヒートマップ"}
+       ],
+       "layout"
+     ) }}
+{% endblock %}
+
+{% block content %}
+  <div style="display:flex; gap: var(--space-4);">
+    {#
+      間取りキャンバス枠：部屋の表示・ドラッグ操作をここに実装する予定。
+      幅の割合はワイヤーフレーム（screens_and_flow.pdf）の flex2 に対応。
+    #}
+    <div style="flex: 2;">
+      {{ ui.placeholder_frame("間取りキャンバス枠（部屋の表示・ドラッグ操作）", height="360px") }}
+    </div>
+
+    {#
+      操作パネル枠：ひな形選択・部屋追加などの操作をここに実装する予定。
+    #}
+    <div style="width: 220px;">
+      {{ ui.placeholder_frame("操作パネル枠（ひな形選択・部屋追加）", height="360px") }}
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
+    {{ ui.button("次へ：ルーター配置", url=url_for('app.wifi.router_placement')) }}
+  </div>
+{% endblock %}

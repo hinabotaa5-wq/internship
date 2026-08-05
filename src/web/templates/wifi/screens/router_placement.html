@@ -1,0 +1,50 @@
+{#
+  ③ ルーター配置画面（/router-placement）
+
+  担当Bが中身（親機のドラッグ配置・機器や契約条件の入力）を実装する画面。
+  前提条件：間取りが作成済みであること（route_guards.py の
+  requires_house_layout がチェック済みなので、このテンプレートの中では
+  「間取りがある」ことを前提にしてよい）。
+
+  ステップ表示は layout.html と同じ、間取り・ヒートマップモジュール専用の
+  3段階（診断質問を含まない）。詳しい理由は layout.html のコメントを参照。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}ルーター配置{% endblock %}
+
+{% block step_indicator %}
+  {{ ui.stepper(
+       [
+         {"id": "layout", "label": "間取り"},
+         {"id": "router", "label": "配置"},
+         {"id": "heatmap", "label": "ヒートマップ"}
+       ],
+       "router"
+     ) }}
+{% endblock %}
+
+{% block content %}
+  <div style="display:flex; gap: var(--space-4);">
+    {#
+      間取り＋ルーター配置キャンバス枠：
+      すでにある間取りの上に、親機をドラッグで置く操作をここに実装する予定。
+    #}
+    <div style="flex: 2;">
+      {{ ui.placeholder_frame("間取り＋ルーター配置キャンバス枠（ドラッグ操作）", height="360px") }}
+    </div>
+
+    {#
+      機器・契約設定枠：ルーター世代・契約プラン・帯・人数・用途の入力を
+      ここに実装する予定（CLAUDE.md 4-1 の environment に対応）。
+    #}
+    <div style="width: 220px;">
+      {{ ui.placeholder_frame("機器・契約設定枠", height="360px") }}
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
+    {{ ui.button("次へ：ヒートマップを見る", url=url_for('app.wifi.heatmap')) }}
+  </div>
+{% endblock %}

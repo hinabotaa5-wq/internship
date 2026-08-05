@@ -1,0 +1,67 @@
+{#
+  ④ ヒートマップ表示画面（/heatmap）
+
+  担当Dが中身（電波の強さの可視化、部屋別の状況表示）を実装する画面。
+  前提条件：間取り＋ルーター位置が保存済みであること
+  （route_guards.py の requires_router_position がチェック済み）。
+
+  CLAUDE.mdの規定により、この画面のキャンバス枠だけは例外的に
+  暗い配色にしてよい（画面全体はライトのまま）。
+  プレースホルダーの時点でも、その位置づけをクラス名で示しておく
+  （実装時にキャンバス枠の内側だけ暗色CSSを当てる想定）。
+
+  ステップ表示は layout.html と同じ、間取り・ヒートマップモジュール専用の
+  3段階。この画面がモジュールの最後の段階になる。
+
+  この画面はヒートマップだけを見て終わる利用者もいれば、
+  ここから診断質問へ進む利用者もいる（順序は固定しない）ため、
+  「次へ：診断質問へ」という一直線の主CTAにはしない。
+  診断質問へのリンクは任意の選択肢（準CTA）として提示する。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}ヒートマップ表示{% endblock %}
+
+{% block step_indicator %}
+  {{ ui.stepper(
+       [
+         {"id": "layout", "label": "間取り"},
+         {"id": "router", "label": "配置"},
+         {"id": "heatmap", "label": "ヒートマップ"}
+       ],
+       "heatmap"
+     ) }}
+{% endblock %}
+
+{% block content %}
+  {{ ui.notice_banner() }}
+
+  <div style="display:flex; gap: var(--space-4);">
+    {#
+      ヒートマップキャンバス枠：電波の強さを明るさで可視化する予定。
+      CLAUDE.mdの例外規定に基づき、実装時はこの枠の内側だけ
+      var(--color-heatmap-bg) を使った暗色にする
+      （画面全体はライトのままにすること）。
+    #}
+    <div style="flex: 2;">
+      {{ ui.placeholder_frame("ヒートマップキャンバス枠（暗色になる予定・ドラッグ操作対象）", height="360px") }}
+    </div>
+
+    {#
+      部屋別状況・設定枠：部屋ごとの電波レベル表示、反射ON/OFF切り替え、
+      中継機追加の操作などをここに実装する予定。
+    #}
+    <div style="width: 220px;">
+      {{ ui.placeholder_frame("部屋別状況・設定枠", height="360px") }}
+    </div>
+  </div>
+
+  {#
+    ヒートマップだけを見て終わる利用者もいるため、ここに一直線の
+    主CTAは置かない。診断質問へは、任意で進める準CTAとして提示する。
+  #}
+  <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
+    {{ ui.button("診断質問にも答えてみる（任意）", url=url_for('app.wifi.diagnosis'), variant="secondary") }}
+  </div>
+{% endblock %}

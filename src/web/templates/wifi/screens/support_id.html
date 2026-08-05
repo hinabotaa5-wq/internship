@@ -1,0 +1,47 @@
+{#
+  ⑧ サポートID発行画面（/support-id）
+
+  担当Aが中身（送信内容の確認・POST /api/tickets 呼び出し・受付番号表示）
+  を実装する画面。前提条件：診断結果があること
+  （requires_diagnosis_result がチェック済み）。
+
+  この画面はまだ Ticket API（/api/tickets）との連携を実装していない
+  （feature/database ブランチに実装があるが、本ブランチには未取り込み）。
+  そのため現時点では送信・表示ともにプレースホルダーのままにする。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}お問い合わせ{% endblock %}
+
+{% block content %}
+  <div style="display:flex; justify-content:center;">
+    <div style="width: 100%; max-width: 480px;">
+      {#
+        送信内容確認枠：room_layout・qa_history の内容をここに
+        利用者が確認できる形で表示する予定（送信前に必ず見せる要件）。
+      #}
+      {{ ui.placeholder_frame("送信内容確認枠", height="120px") }}
+
+      {#
+        同意チェック枠：送信内容に同意するチェックボックスをここに置く予定。
+      #}
+      <div style="margin-top: var(--space-3);">
+        {{ ui.placeholder_frame("同意チェック枠", height="44px") }}
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top: var(--space-3);">
+        {{ ui.placeholder_frame("主CTA枠（送信する）", height="44px") }}
+      </div>
+
+      {#
+        受付番号表示枠：POST /api/tickets のレスポンスにある
+        ticket_number（NIF-XXXXXX形式）をここに表示する予定。
+        コピー機能もここに実装する予定。
+      #}
+      <div style="margin-top: var(--space-5);">
+        {{ ui.placeholder_frame("受付番号表示枠", height="100px") }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

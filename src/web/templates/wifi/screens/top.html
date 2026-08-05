@@ -1,0 +1,48 @@
+{#
+  ① トップ画面（/）
+
+  現在のフェーズでは中身（実際のデザイン）を作らず、
+  「どの枠が置かれる予定か」だけを示すプレースホルダーで構成する。
+  docs/design/screens_and_flow.pdf の①トップ画面の枠取りに対応。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}Wi-Fiかんたん診断{% endblock %}
+
+{#
+  トップ画面はまだどのステップにも入っていない入口なので、
+  ステップ表示（stepper）は出さない。
+  base.html の step_indicator ブロックを何も上書きしない場合、
+  自動的に空のまま（何も表示されない）になる。
+#}
+
+{% block content %}
+  <div style="display:flex; flex-direction:column; align-items:center; gap: var(--space-5); padding: var(--space-5) 0;">
+
+    <p style="text-align:center; color: var(--color-text-muted); max-width: 480px;">
+      お家のWi-Fiがなんとなく遅い・つながりにくい……そんなときに、
+      原因と直し方の目安を確認できます。
+    </p>
+
+    <div style="display:flex; gap: var(--space-4); flex-wrap: wrap; justify-content:center;">
+      {#
+        導線カード枠A：間取りから診断するルートへの入口。
+        中身（実際の文言・アイコンなど）はまだ決めず、枠だけを置く。
+      #}
+      <div style="width: 260px;">
+        {{ ui.placeholder_frame("導線カード枠（間取りから診断する）", height="140px") }}
+        {{ ui.button("はじめる", url=url_for('app.wifi.layout'), variant="primary", full_width=true) }}
+      </div>
+
+      {#
+        導線カード枠B：質問だけで診断するルートへの入口。
+        間取りを作らずに診断質問画面へ直接進める。
+      #}
+      <div style="width: 260px;">
+        {{ ui.placeholder_frame("導線カード枠（質問だけで診断する）", height="140px") }}
+        {{ ui.button("質問に答える", url=url_for('app.wifi.diagnosis'), variant="secondary", full_width=true) }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

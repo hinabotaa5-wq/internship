@@ -325,6 +325,41 @@
 .toast--error   { background-color: var(--color-danger); }
 
 /* ============================================================
+ * プレースホルダー枠（.ui-placeholder）
+ * ============================================================
+ * 現在のフェーズでは、各画面の「中身」（間取りキャンバスの描画・
+ * ドラッグ操作など）はまだ実装しない方針のため、
+ * 「ここに何の枠が置かれる予定か」だけを示す、点線の空き枠を使う。
+ *
+ * docs/design/screens_and_flow.pdf のワイヤーフレームで使った
+ * 「枠取り」の考え方をそのままHTML/CSSに落としたもの。
+ * 実装が進んだら、この枠を実際のUI（キャンバスやフォームなど）に
+ * 差し替えていく。
+ *
+ * 使い方の例（Jinjaマクロ経由）：
+ *   {{ ui.placeholder_frame("間取りキャンバス枠", height="320px") }}
+ */
+.ui-placeholder {
+  /* 点線の枠で「まだ仮の枠である」ことが一目でわかるようにする */
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  text-align: center;
+  padding: var(--space-3);
+
+  /* 枠の高さはJinjaマクロの引数（インラインstyle）で画面ごとに指定する。
+     何も指定されない場合の最低限の高さだけここで決めておく。 */
+  min-height: 80px;
+}
+
+/* ============================================================
  * アニメーションを減らす設定（アクセシビリティ対応）
  * ============================================================
  * prefers-reduced-motion は、OS側で「アニメーションを減らす」設定に

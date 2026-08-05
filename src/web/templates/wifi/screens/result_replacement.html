@@ -1,0 +1,56 @@
+{#
+  ⑥ 結果：買い替え・対策あり画面（/result/replacement）
+
+  担当Eが中身（原因・確信度・対策の表示）を実装する画面。
+  前提条件：診断結果があること（requires_diagnosis_result がチェック済み）。
+  間取り・ヒートマップの確認有無は問わない
+  （質問だけで直接ここに到達した利用者もいるため）。
+
+  結果画面はどのモジュールを経由してきたかが利用者ごとに異なるため、
+  全体を貫くステップ表示は使わない（ローカル進捗表示の方針に合わせる）。
+#}
+{% extends "wifi/base.html" %}
+{% import "wifi/macros/ui.html" as ui %}
+
+{% block title %}診断結果{% endblock %}
+
+{% block content %}
+  {{ ui.notice_banner() }}
+
+  {#
+    原因・確信度表示枠：cause_name・confidence をここに表示する予定
+    （CLAUDE.md 4-3 の result 構造に対応）。
+  #}
+  {{ ui.placeholder_frame("原因・確信度表示枠", height="60px") }}
+
+  {#
+    対策一覧枠：recommended_action の一覧をここに表示する予定。
+    足りている場合はこの枠自体を出さず「追加のご契約は不要」の表示に
+    切り替える分岐が入る想定（担当Eの実装時に扱う）。
+  #}
+  <div style="margin-top: var(--space-3);">
+    {{ ui.placeholder_frame("対策一覧枠", height="100px") }}
+  </div>
+
+  {#
+    「くわしく」展開枠：dBm・Mbps等の数値をここでのみ表示する予定
+    （CLAUDE.mdの「専門用語を表に出さない」要件に対応）。
+  #}
+  <div style="margin-top: var(--space-3);">
+    {{ ui.placeholder_frame("「くわしく」展開枠", height="44px") }}
+  </div>
+
+  {#
+    間取りが未作成の利用者には間取り作成への導線を、
+    すでに作成済みの利用者にはヒートマップ確認への導線を出す
+    （どちらも「より詳しく調べたい場合」の任意の選択肢）。
+  #}
+  <div style="display:flex; justify-content:space-between; margin-top: var(--space-4);">
+    {% if has_house_layout %}
+      {{ ui.button("ヒートマップで確認する", url=url_for('app.wifi.heatmap'), variant="secondary") }}
+    {% else %}
+      {{ ui.button("間取りを作成して確認する", url=url_for('app.wifi.layout'), variant="secondary") }}
+    {% endif %}
+    {{ ui.button("解決しない場合はお問い合わせ", url=url_for('app.wifi.support_id')) }}
+  </div>
+{% endblock %}
