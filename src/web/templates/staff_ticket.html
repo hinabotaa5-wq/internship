@@ -5,10 +5,12 @@
 {% endblock %}
 
 {% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/heatmap.css') }}">
+
   <h1 class="mb-4">問い合わせ照会（コールセンター用）</h1>
   <p class="text-muted">
     お客様から伺った受付番号を入力してください。間取り・Q&amp;A回答履歴を表示します。<br>
-    ※ 現在は取得データをそのまま JSON 表示しています。間取りの描画表示は今後対応予定です。
+    ※ 表示値は間取りや設定から計算したシミュレーションによる目安です。実際の通信品質を保証するものではありません。
   </p>
 
   <div class="card mb-4">
@@ -23,8 +25,60 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { renderStaffHeatmap, LEVEL_TEXT } from "{{ url_for('static', filename='wifi/staff_heatmap.js') }}";
+
     const GET_URL_BASE = "{{ url_for('app.tickets.get_ticket', ticket_number='__TICKET_NUMBER__') }}";
+
+    function renderHeatmap(container, roomLayout) {
+      const heading = document.createElement("h5");
+      heading.className = "mt-4";
+      heading.textContent = "電波の届きぐあい（間取りからのシミュレーション）";
+      container.appendChild(heading);
+
+      if (!roomLayout || !roomLayout.rooms || !roomLayout.rooms.length) {
+        const note = document.createElement("p");
+        note.className = "text-muted";
+        note.textContent = "間取りデータがないため表示できません。";
+        container.appendChild(note);
+        return;
+      }
+
+      const wrap = document.createElement("div");
+      wrap.className = "hm-page";
+      const canvas = document.createElement("canvas");
+      canvas.className = "hm-canvas";
+      wrap.appendChild(canvas);
+      container.appendChild(wrap);
+
+      let simulation;
+      let suggestion;
+      try {
+        ({ simulation, suggestion } = renderStaffHeatmap(canvas, roomLayout));
+      } catch (error) {
+        const note = document.createElement("p");
+        note.className = "text-muted";
+        note.textContent = "間取りデータの形式が不正なため表示できません。";
+        wrap.replaceWith(note);
+        return;
+      }
+
+      const summaryList = document.createElement("ul");
+      summaryList.className = "hm-rooms mt-3";
+      summaryList.innerHTML = simulation.room_summaries
+        .map((summary) => {
+          const room = roomLayout.rooms.find((r) => r.id === summary.room_id);
+          const name = room ? room.name : summary.room_id;
+          return `<li><span class="hm-room-name">${name}</span><span class="hm-room-level" data-level="${summary.level}">${LEVEL_TEXT[summary.level]}</span></li>`;
+        })
+        .join("");
+      container.appendChild(summaryList);
+
+      const suggestionEl = document.createElement("p");
+      suggestionEl.className = "hm-suggestion-message";
+      suggestionEl.textContent = suggestion.message;
+      container.appendChild(suggestionEl);
+    }
 
     function renderTicket(container, data) {
       container.replaceChildren();
@@ -39,15 +93,7 @@
       `;
       container.appendChild(summary);
 
-      const layoutHeading = document.createElement("h5");
-      layoutHeading.className = "mt-4";
-      layoutHeading.textContent = "間取りデータ（room_layout）";
-      container.appendChild(layoutHeading);
-
-      const layoutPre = document.createElement("pre");
-      layoutPre.className = "bg-light p-3 rounded";
-      layoutPre.textContent = JSON.stringify(data.room_layout, null, 2);
-      container.appendChild(layoutPre);
+      renderHeatmap(container, data.room_layout);
 
       const qaHeading = document.createElement("h5");
       qaHeading.className = "mt-4";
