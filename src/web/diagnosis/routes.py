@@ -37,6 +37,16 @@ def _has_active_diagnosis() -> bool:
     return SESSION_KEY_DIAGNOSIS_ID in session
 
 
+def _render_question(question_data, diagnosis_id, answered_count, error=None):
+    return render_template(
+        "diagnosis_question.html",
+        question=question_data,
+        diagnosis_id=diagnosis_id,
+        answered_count=answered_count,
+        error=error,
+    )
+
+
 @DIAGNOSIS_BP.route("/", methods=["GET"])
 def start():
     return render_template("diagnosis_start.html")
@@ -64,12 +74,10 @@ def question():
         _reset_session()
         return redirect(url_for("app.diagnosis.question"))
 
-    return render_template(
-        "diagnosis_question.html",
-        question=question_data,
-        diagnosis_id=session[SESSION_KEY_DIAGNOSIS_ID],
-        answered_count=len(session[SESSION_KEY_ANSWERS]),
-        error=None,
+    return _render_question(
+        question_data,
+        session[SESSION_KEY_DIAGNOSIS_ID],
+        len(session[SESSION_KEY_ANSWERS]),
     )
 
 
@@ -77,6 +85,10 @@ def question():
 def answer():
     if not _has_active_diagnosis():
         return redirect(url_for("app.diagnosis.start"))
+
+    if session.get(SESSION_KEY_RESULT) is not None:
+        # 診断完了後にフォームが再送信された場合は、結果ページへ送る
+        return redirect(url_for("app.diagnosis.result"))
 
     question_id = session.get(SESSION_KEY_CURRENT_QUESTION_ID)
     question_data = engine.get_question(question_id)
@@ -86,11 +98,10 @@ def answer():
 
     answer_id = request.form.get("answer")
     if not answer_id or not engine.validate_answer(question_id, answer_id):
-        return render_template(
-            "diagnosis_question.html",
-            question=question_data,
-            diagnosis_id=session[SESSION_KEY_DIAGNOSIS_ID],
-            answered_count=len(session[SESSION_KEY_ANSWERS]),
+        return _render_question(
+            question_data,
+            session[SESSION_KEY_DIAGNOSIS_ID],
+            len(session[SESSION_KEY_ANSWERS]),
             error="回答を1つ選択してください。",
         )
 
