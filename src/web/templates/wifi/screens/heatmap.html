@@ -60,6 +60,6 @@
     主CTAは置かない。診断質問へは、任意で進める準CTAとして提示する。
   #}
   <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
-    {{ ui.button("診断質問にも答えてみる（任意）", url=url_for('app.wifi.diagnosis'), variant="secondary") }}
+    {{ ui.button("診断質問にも答えてみる（任意）", url=url_for('app.diagnosis.start'), variant="secondary") }}
   </div>
 {% endblock %}

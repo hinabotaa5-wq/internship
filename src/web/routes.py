@@ -4,6 +4,7 @@ from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
 from web.auth.routes import AUTH_BP
+from web.diagnosis.routes import DIAGNOSIS_BP
 from web.wifi.routes import WIFI_BP
 
 APP_BP = Blueprint("app", __name__)
@@ -11,22 +12,27 @@ APP_BP = Blueprint("app", __name__)
 # ログイン用のエンドポイントを追加する
 APP_BP.register_blueprint(AUTH_BP)
 
+# 質問ページ（原因切り分け診断）用のエンドポイントを追加する
+# main側の実装（engine.py・routes.py・テンプレート・CSSを一式）をそのまま使う。
+# url_prefix="/diagnosis" で "/diagnosis/", "/diagnosis/start",
+# "/diagnosis/question", "/diagnosis/answer", "/diagnosis/result",
+# "/diagnosis/restart" を提供する。
+APP_BP.register_blueprint(DIAGNOSIS_BP)
+
 # Wi-Fi診断アプリの画面用のエンドポイントを追加する
-# （トップページ "/" を含め、CLAUDE.md記載の8画面のルートはすべてここに登録されている）
+# （トップページ "/" を含め、CLAUDE.md記載の8画面のうち診断質問以外の
+# ルートはここに登録されている）
 #
-# 注意：main側にあった DIAGNOSIS_BP（src/web/diagnosis/routes.py）は、
-# ここでは登録しない。DIAGNOSIS_BP は url_prefix="/diagnosis" で
-# "/diagnosis/", "/diagnosis/question", "/diagnosis/result" を提供するが、
-# これは WIFI_BP がすでに提供している "/diagnosis"（診断質問画面）と役割が
-# 重複している。加えて DIAGNOSIS_BP は現状 engine.py に存在しない名前
-# （FIRST_NODE_ID, RESULTS, build_result_payload, resolve_next）を
-# インポートしており、単体ではインポートエラーで起動できない状態だった。
+# 注意：WIFI_BP 側にも "/diagnosis" ルートが定義されていたが、これは
+# DIAGNOSIS_BP（"/diagnosis/question" 等）と役割・URLが重複するため、
+# src/web/wifi/routes.py 側の /diagnosis ルート定義を削除した。
+# トップページ等から診断質問へ遷移する場合は、
+# url_for("app.diagnosis.start") を使う。
 #
-# 質問データ・分岐ロジック自体（src/web/diagnosis/engine.py）は有用なため
-# ファイルとしては取り込むが、実際に呼び出す口は WIFI_BP 側の
-# /diagnosis ルート（src/web/wifi/routes.py）に実装し直す。
-# UIは共通レイアウト（wifi/base.html）を使い、Bootstrap版の
-# diagnosis_question.html / diagnosis_result.html は使わない。
+# main側の FLOORPLAN_BP（/layout, /router-placement）・HEATMAP_BP（/heatmap）
+# は、WIFI_BP がすでに同じURLを提供しているため、ここでは登録しない
+# （両方registerするとURLが重複してしまう）。floorplan・heatmapの中身の
+# 統合は別タスクとして扱う。
 APP_BP.register_blueprint(WIFI_BP)
 
 
@@ -48,3 +54,15 @@ def secret():
 
     # 画面デザイン完了後、動作確認中
     return render_template("secret.html", user=current_user)
+
+# 以下、mainマージで取り込まれた次の3ルートは、いずれも本ブランチの
+# 対象スコープ外（今回は診断質問(diagnosis)のみを統合する）のため、
+# いったんこのファイルから削除した:
+#   - /test-ticket（担当A: Ticket API動作確認ページ）
+#   - /staff/tickets（担当A: コールセンター向け照会ページ）
+#   - /support-id（担当A: web.session.get_diagnosis_session に依存する
+#     送信前確認ページ。src/web/wifi/routes.py 側にも同名の /support-id
+#     ルートが既にあり、URLが重複するため）
+# これらの機能自体（web/tickets.py, web/session.py, テンプレート）は
+# ファイルとしては取り込まれているので、Ticket機能を統合する別タスクで
+# あらためて対応する。

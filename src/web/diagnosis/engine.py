@@ -268,7 +268,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "temporary_router_failure": {
         "cause_name": "ルーター・回線機器の一時的な動作不良",
@@ -280,7 +279,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "router_location": {
         "cause_name": "ルーターの設置場所・遮蔽物による電波減衰",
@@ -292,7 +290,6 @@ CAUSES = {
         ],
         "show_heatmap": True,
         "support_required": False,
-        "support_target": None,
     },
     "distance_or_obstacle": {
         "cause_name": "端末とルーターの距離による電波不足",
@@ -304,7 +301,6 @@ CAUSES = {
         ],
         "show_heatmap": True,
         "support_required": False,
-        "support_target": None,
     },
     "router_capacity": {
         "cause_name": "ルーターの同時接続台数不足",
@@ -316,7 +312,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "router_aging": {
         "cause_name": "ルーターの経年劣化・性能不足",
@@ -327,7 +322,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "heavy_simultaneous_usage": {
         "cause_name": "家庭内の通信量の集中",
@@ -339,7 +333,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "line_congestion": {
         "cause_name": "回線・プロバイダ設備の混雑",
@@ -351,7 +344,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": True,
-        "support_target": "isp",
     },
     "provider_outage": {
         "cause_name": "回線事業者・プロバイダ側の障害",
@@ -363,7 +355,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": True,
-        "support_target": "isp",
     },
     "single_device_issue": {
         "cause_name": "特定端末のWi-Fi設定・性能の問題",
@@ -375,7 +366,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "service_side_issue": {
         "cause_name": "利用サービス側の障害",
@@ -386,7 +376,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "wifi_only_issue": {
         "cause_name": "Wi-Fi接続だけに発生している問題",
@@ -398,7 +387,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": False,
-        "support_target": None,
     },
     "wired_and_wifi_issue": {
         "cause_name": "有線接続でも発生している問題",
@@ -409,7 +397,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": True,
-        "support_target": "isp",
     },
     "unknown_issue": {
         "cause_name": "原因を一つに特定できない問題",
@@ -420,7 +407,6 @@ CAUSES = {
         ],
         "show_heatmap": False,
         "support_required": True,
-        "support_target": "isp",
     },
 }
 
@@ -616,7 +602,7 @@ def determine_next_step(
 def generate_diagnosis_id() -> str:
     """`HM-YYYYMMDD-XXXXXX` 形式の診断IDを発行する。"""
     today = date.today().strftime("%Y%m%d")
-    suffix_chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    suffix_chars = "ABCDEFGHJKMNPRSTUVWXY345678"
     suffix = "".join(secrets.choice(suffix_chars) for _ in range(6))
     return f"HM-{today}-{suffix}"
 
@@ -643,7 +629,6 @@ def build_diagnosis_result(
         "recommended_action": cause["recommended_action"],
         "show_heatmap": cause["show_heatmap"],
         "support_required": cause["support_required"],
-        "support_target": cause["support_target"],
         "support_message": support_message,
         "answers": answer_history,
     }

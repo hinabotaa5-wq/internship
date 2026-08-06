@@ -37,7 +37,7 @@ requires_house_layout が間取りの有無をチェックし、
 
 import functools
 
-from flask import redirect, url_for
+from flask import redirect, session, url_for
 
 from web import wifi_session
 
@@ -89,17 +89,27 @@ def requires_diagnosis_result(view_function):
     """
     「診断が完了し、結果が出ていること」を必須とするデコレータ。
 
-    診断結果画面（/result/replacement, /result/unknown）や
-    サポートID発行画面（/support-id）など、
-    診断が終わっていることを前提とする画面に付ける。
+    サポートID発行画面（/support-id）など、診断が終わっていることを
+    前提とする画面に付ける。
 
-    診断結果が無い場合は、診断質問画面（/diagnosis）へリダイレクトする。
+    診断結果が無い場合は、診断質問の開始画面（/diagnosis/）へ
+    リダイレクトする。
+
+    注意：診断結果画面自体（CLAUDE.mdの⑥⑦に相当する画面）は、
+    src/web/diagnosis/routes.py（DIAGNOSIS_BP）の "/diagnosis/result"
+    が1画面で confidence によって表示を切り替える設計になっており、
+    このアプリでは WIFI_BP 側に別途 /result/replacement・/result/unknown
+    は存在しない。
+    診断結果は DIAGNOSIS_BP が Flask の session に直接
+    session["result"] という形で保存する（wifi_session.py が管理する
+    session["wifi"]["diagnosis"] とは別の場所）。
+    そのため、ここでの判定も session["result"] を直接見る。
     """
 
     @functools.wraps(view_function)
     def wrapped_view(*args, **kwargs):
-        if not wifi_session.has_diagnosis_result():
-            return redirect(url_for("app.wifi.diagnosis"))
+        if session.get("result") is None:
+            return redirect(url_for("app.diagnosis.start"))
         return view_function(*args, **kwargs)
 
     return wrapped_view

@@ -1,0 +1,329 @@
+/* 住宅レイアウト作成・ルーター配置の画面スタイル（担当B / 画面2・3）
+   ライトテーマのみ。ダークモード切替は作らない（仕様書2章）。
+   色は担当Aの theme.css の変数を使い、未読込でも成立するようフォールバックを書く。 */
+
+.fp-page {
+  --fp-bg: var(--color-bg, #ffffff);
+  --fp-bg-subtle: var(--color-bg-subtle, #eef2f7);
+  --fp-text: var(--color-text, #1a2b4c);
+  --fp-text-weak: #4a5b7a;
+  --fp-cta: var(--color-cta, #1e5fd9);
+  --fp-border: #c9d3e3;
+  --fp-good: #17794c;
+  --fp-warn: #a35a00;
+  --fp-error: #b3261e;
+
+  color: var(--fp-text);
+  font-size: 16px;
+}
+
+/* --- ステップ表示 ---
+   共通シェル（担当A）ができたらそちらへ移す。 */
+.fp-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0;
+  margin: 0 0 1rem;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--fp-text-weak);
+}
+
+.fp-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fp-steps li::after {
+  content: "›";
+  color: var(--fp-border);
+}
+
+.fp-steps li:last-child::after {
+  content: "";
+}
+
+.fp-steps li[aria-current="step"] {
+  font-weight: 700;
+  color: var(--fp-cta);
+}
+
+.fp-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.fp-lead {
+  margin: 0 0 1rem;
+  color: var(--fp-text-weak);
+}
+
+/* --- シミュレーションであることの注意文（全画面共通の必須表示） --- */
+.fp-note {
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--fp-text-weak);
+  background: var(--fp-bg-subtle);
+  border-left: 4px solid var(--fp-border);
+  border-radius: 4px;
+}
+
+/* --- 本体レイアウト --- */
+.fp-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .fp-main {
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  }
+}
+
+.fp-card {
+  padding: 1rem;
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: 8px;
+}
+
+.fp-card + .fp-card {
+  margin-top: 1rem;
+}
+
+.fp-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* --- キャンバス --- */
+.fp-canvas-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.fp-canvas {
+  display: block;
+  width: 100%;
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: 6px;
+  /* タッチでキャンバスを触っても画面がスクロールしないようにする */
+  touch-action: none;
+}
+
+.fp-canvas:focus-visible {
+  outline: 3px solid var(--fp-cta);
+  outline-offset: 2px;
+}
+
+.fp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--fp-text-weak);
+}
+
+.fp-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fp-legend i {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top-style: solid;
+}
+
+.fp-legend .fp-legend-outer {
+  border-top-width: 5px;
+  border-top-color: #1a2b4c;
+}
+
+.fp-legend .fp-legend-inner {
+  border-top-width: 3px;
+  border-top-color: #7c8aa5;
+}
+
+.fp-legend .fp-legend-water {
+  border-top-width: 3px;
+  border-top-color: #2f7f9f;
+}
+
+.fp-legend .fp-legend-door {
+  border-top-width: 1px;
+  border-top-color: #b9c4d6;
+}
+
+/* --- 操作パーツ --- */
+.fp-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fp-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fp-text);
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.fp-btn:hover:not(:disabled) {
+  background: var(--fp-bg-subtle);
+}
+
+.fp-btn:disabled {
+  color: #7a879e;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fp-btn[aria-pressed="true"] {
+  color: #ffffff;
+  background: var(--fp-cta);
+  border-color: var(--fp-cta);
+}
+
+.fp-btn-primary {
+  color: #ffffff;
+  background: var(--fp-cta);
+  border-color: var(--fp-cta);
+}
+
+.fp-btn-primary:hover:not(:disabled) {
+  background: #174ab0;
+  border-color: #174ab0;
+}
+
+.fp-btn-danger {
+  color: var(--fp-error);
+  border-color: var(--fp-error);
+}
+
+.fp-btn-step {
+  width: 44px;
+  padding: 0.5rem 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.fp-select {
+  min-height: 44px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: var(--fp-text);
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: 6px;
+}
+
+.fp-field {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.fp-field > span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem
+}
+
+/* --- 選択中の部屋の情報 --- */
+.fp-selected-name {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.fp-size {
+  margin: 0 0 0.75rem;
+  color: var(--fp-text-weak);
+  font-size: 0.9375rem;
+}
+
+.fp-size b {
+  color: var(--fp-text);
+}
+
+.fp-empty {
+  margin: 0;
+  color: var(--fp-text-weak);
+}
+
+.fp-help {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--fp-text-weak);
+}
+
+/* --- 通知（操作できなかった理由を日本語で伝える） --- */
+.fp-toast {
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  border-radius: 6px;
+}
+
+.fp-toast[hidden] {
+  display: none;
+}
+
+.fp-toast[data-tone="error"] {
+  color: var(--fp-error);
+  background: #fdecea;
+  border: 1px solid #f3c2bd;
+}
+
+.fp-toast[data-tone="info"] {
+  color: var(--fp-good);
+  background: #e7f4ed;
+  border: 1px solid #b9dfc9;
+}
+
+/* --- 画面下部のCTA --- */
+.fp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+.fp-actions .fp-btn-primary {
+  min-width: 200px;
+}
+
+.fp-back {
+  color: var(--fp-cta);
+  font-size: 0.9375rem;
+}
+
+/* 派手なアニメーションは使わないが、わずかな変化も無効化できるようにする */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

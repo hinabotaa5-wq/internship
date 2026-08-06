@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Ticket API 動作確認
+{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">Ticket API 動作確認ページ</h1>
+
+  <!-- 登録 -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">POST /api/tickets（ダミーデータで登録）</h5>
+      <button id="create-btn" type="button" class="btn btn-primary">ダミーデータを送信</button>
+
+      <div id="create-result" class="mt-3"></div>
+    </div>
+  </div>
+
+  <!-- 照会 -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">GET /api/tickets/&lt;ticket_number&gt;（照会）</h5>
+
+      <div class="mb-3">
+        <label for="ticket-number-input" class="form-label">受付番号</label>
+        <input type="text" id="ticket-number-input" class="form-control" placeholder="NIF-XXXXXX">
+      </div>
+      <button id="fetch-btn" type="button" class="btn btn-primary">取得</button>
+
+      <div id="fetch-result" class="mt-3"></div>
+    </div>
+  </div>
+
+  <script>
+    const CREATE_URL = "{{ url_for('app.tickets.create_ticket') }}";
+    const GET_URL_BASE = "{{ url_for('app.tickets.get_ticket', ticket_number='__TICKET_NUMBER__') }}";
+
+    const DUMMY_TICKET = {
+      room_layout: {
+        rooms: [
+          { id: "r1", name: "リビング", type: "ldk", x: 0, y: 0, width: 6, height: 5 },
+        ],
+        walls: [
+          { x1: 0, y1: 0, x2: 6, y2: 0, material: "concrete" },
+        ],
+        router: { x: 4.5, y: 7.0 },
+      },
+      qa_history: [
+        { q: "ルーターの電波が弱い", a: "金属家具から離してください" },
+      ],
+    };
+
+    function renderJson(container, data) {
+      const pre = document.createElement("pre");
+      pre.className = "bg-light p-3 rounded";
+      pre.textContent = JSON.stringify(data, null, 2);
+      container.replaceChildren(pre);
+    }
+
+    function renderError(container, message) {
+      const div = document.createElement("div");
+      div.className = "alert alert-danger mb-0";
+      div.textContent = message;
+      container.replaceChildren(div);
+    }
+
+    document.getElementById("create-btn").addEventListener("click", async () => {
+      const resultEl = document.getElementById("create-result");
+      try {
+        const res = await fetch(CREATE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(DUMMY_TICKET),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          renderError(resultEl, data.description || "登録に失敗しました");
+          return;
+        }
+        renderJson(resultEl, data);
+        document.getElementById("ticket-number-input").value = data.ticket_number;
+      } catch (err) {
+        renderError(resultEl, "通信エラーが発生しました");
+      }
+    });
+
+    document.getElementById("fetch-btn").addEventListener("click", async () => {
+      const resultEl = document.getElementById("fetch-result");
+      const ticketNumber = document.getElementById("ticket-number-input").value.trim();
+      if (!ticketNumber) {
+        renderError(resultEl, "受付番号を入力してください");
+        return;
+      }
+
+      const url = GET_URL_BASE.replace("__TICKET_NUMBER__", encodeURIComponent(ticketNumber));
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!res.ok) {
+          renderError(resultEl, data.description || "取得に失敗しました");
+          return;
+        }
+        renderJson(resultEl, data);
+      } catch (err) {
+        renderError(resultEl, "通信エラーが発生しました");
+      }
+    });
+  </script>
+{% endblock %}

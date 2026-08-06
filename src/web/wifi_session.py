@@ -52,11 +52,11 @@ from flask import session
 _SESSION_ROOT_KEY = "wifi"
 
 # _SESSION_ROOT_KEY の中で使う、2番目の階層のキー名。
-# CLAUDE.md 4章にある3つのデータのまとまり（間取り・シミュレーション結果・診断）
-# にそれぞれ対応させている。
+# CLAUDE.md 4章にあるデータのまとまり（間取り・シミュレーション結果）に
+# それぞれ対応させている（診断セッションは別モジュールで管理するため、
+# ここには含まない。詳細は本ファイル内の該当コメントを参照）。
 _HOUSE_LAYOUT_KEY = "house_layout"
 _SIMULATION_RESULT_KEY = "simulation_result"
-_DIAGNOSIS_KEY = "diagnosis"
 
 
 # ============================================================
@@ -259,154 +259,15 @@ def save_simulation_result(result: dict) -> None:
 # ============================================================
 
 
-def start_diagnosis(diagnosis_id: str) -> None:
-    """
-    新しい診断を開始する。
-
-    それまで進めていた診断の回答（answers）や結果（result）があれば
-    リセットして、新しい診断IDでまっさらな状態から始める。
-
-    引数:
-        diagnosis_id - "HM-YYYYMMDD-XXXXXX" 形式の診断ID。
-                       このID自体を生成する処理はこのファイルの責務ではなく、
-                       呼び出し側（診断ルートを実装する担当E）が生成して渡す。
-    """
-    wifi_state = _get_wifi_state()
-    wifi_state[_DIAGNOSIS_KEY] = {
-        "diagnosis_id": diagnosis_id,
-        "current_question_id": None,
-        "answers": [],
-        "result": None,
-    }
-    _save_wifi_state(wifi_state)
-
-
-def get_diagnosis() -> dict | None:
-    """
-    現在進行中（または完了済み）の診断セッションを取得する。
-
-    戻り値:
-        diagnosis_id / current_question_id / answers / result を含む辞書。
-        まだ診断が開始されていない場合は None。
-    """
-    wifi_state = _get_wifi_state()
-    return wifi_state.get(_DIAGNOSIS_KEY)
-
-
-def set_current_question(question_id: str) -> None:
-    """
-    現在利用者に表示している質問のIDを更新する。
-
-    引数:
-        question_id - 質問を表すID（日本語の質問文そのものではなく、
-                      英小文字とアンダースコアのID。CLAUDE.md 規則3）。
-    """
-    wifi_state = _get_wifi_state()
-    diagnosis = wifi_state.get(_DIAGNOSIS_KEY)
-    if diagnosis is None:
-        # start_diagnosis() が呼ばれていない状態でこの関数が呼ばれるのは
-        # 呼び出し側の実装ミスなので、静かに無視するのではなく、
-        # わかりやすいエラーとして知らせる。
-        raise RuntimeError(
-            "診断が開始されていません。先に start_diagnosis() を呼んでください。"
-        )
-
-    diagnosis["current_question_id"] = question_id
-    wifi_state[_DIAGNOSIS_KEY] = diagnosis
-    _save_wifi_state(wifi_state)
-
-
-def add_diagnosis_answer(question_id: str, answer_id: str) -> None:
-    """
-    質問への回答を1件記録する。
-
-    CLAUDE.md の要件「戻る操作で回答の修正を許可する」を満たすため、
-    この関数は「同じ質問IDにすでに回答済みなら、その回答を新しい内容で
-    上書きする」という動きにしている
-    （回答を追加していくだけだと、利用者が『戻る→答えを変える→進む』を
-    行った際に、同じ質問への回答が複数件残ってしまうため）。
-
-    さらに、診断の質問は木構造（ある質問の回答によって次の質問が
-    分岐する）になっている。そのため、利用者が過去の質問に戻って
-    以前とは違う選択肢を選んだ場合、その質問より後に記録されていた
-    回答は「もう通らないはずの、古い分岐の記録」になってしまう。
-    古い記録を残したままにすると、診断エンジンに矛盾した回答履歴を
-    渡すことになるため、この関数では「上書きした質問より後に記録されて
-    いた回答」をすべて削除してから、上書きした回答までの履歴だけを残す。
-
-    引数:
-        question_id - 質問のID（英小文字とアンダースコア）
-        answer_id   - 選ばれた回答のID（英小文字とアンダースコア）
-    """
-    wifi_state = _get_wifi_state()
-    diagnosis = wifi_state.get(_DIAGNOSIS_KEY)
-    if diagnosis is None:
-        raise RuntimeError(
-            "診断が開始されていません。先に start_diagnosis() を呼んでください。"
-        )
-
-    answers = diagnosis.get("answers", [])
-
-    # すでに同じ question_id への回答が記録されていないかを、
-    # 記録された順番（古い→新しい）に探す。
-    existing_index = None
-    for index, answer in enumerate(answers):
-        if answer["question_id"] == question_id:
-            existing_index = index
-            break
-
-    if existing_index is None:
-        # 初めて回答する質問の場合は、そのまま末尾に追加する。
-        answers.append({"question_id": question_id, "answer_id": answer_id})
-    else:
-        # 過去に戻って回答をやり直した場合。
-        # 上書き対象の質問より後ろにある回答は、もう辿らないはずの
-        # 古い分岐の記録なので、まとめて切り落とす。
-        # 例: answers = [q1, q2, q3] で q2 をやり直す場合、
-        #     q3 の回答は分岐が変わって無効になるため、
-        #     answers = [q1, 新しいq2] という形に切り詰める。
-        answers = answers[:existing_index]
-        answers.append({"question_id": question_id, "answer_id": answer_id})
-
-    diagnosis["answers"] = answers
-    wifi_state[_DIAGNOSIS_KEY] = diagnosis
-    _save_wifi_state(wifi_state)
-
-
-def save_diagnosis_result(result: dict) -> None:
-    """
-    診断結果（原因・確信度・対策など）を保存する。
-
-    引数:
-        result - CLAUDE.md 4-3 の result の構造そのままの辞書
-                 （cause_id, confidence, recommended_action など）。
-    """
-    wifi_state = _get_wifi_state()
-    diagnosis = wifi_state.get(_DIAGNOSIS_KEY)
-    if diagnosis is None:
-        raise RuntimeError(
-            "診断が開始されていません。先に start_diagnosis() を呼んでください。"
-        )
-
-    diagnosis["result"] = result
-    wifi_state[_DIAGNOSIS_KEY] = diagnosis
-    _save_wifi_state(wifi_state)
-
-
-def has_diagnosis_result() -> bool:
-    """
-    診断が完了し、結果（result）が出ているかどうかを返す。
-
-    ルートガードが以下のような判定に使う想定：
-      - /result/replacement や /result/unknown に、診断未完了のまま
-        直接アクセスしてきたら /diagnosis に戻す
-      - /support-id に、診断結果がないまま直接アクセスしてきたら
-        /diagnosis に戻す
-    """
-    diagnosis = get_diagnosis()
-    if diagnosis is None:
-        return False
-    return diagnosis.get("result") is not None
+# 注意：このセクションにあった診断セッション関連の関数群
+# （start_diagnosis, get_diagnosis, set_current_question,
+# add_diagnosis_answer, save_diagnosis_result, has_diagnosis_result）は
+# 削除した。診断機能はmainブランチに存在する実装一式
+# （src/web/diagnosis/routes.py の DIAGNOSIS_BP と
+# src/web/session.py・src/web/diagnosis_state.py）に統合したため、
+# この session["wifi"]["diagnosis"] という構造での管理は使わなくなった
+# （DIAGNOSIS_BPは session["result"] のようにFlaskのsessionへ
+# トップレベルキーで直接読み書きする、別の実装方針を採っている）。
 
 
 # ============================================================

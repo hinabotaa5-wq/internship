@@ -25,17 +25,8 @@ CLAUDE.mdには「前提を満たさないルートへの直接アクセスは�
 
 import logging
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, render_template
 
-from web import wifi_session
-from web.diagnosis.engine import (
-    build_diagnosis_result,
-    determine_next_step,
-    generate_diagnosis_id,
-    get_initial_question,
-    get_question,
-    validate_answer,
-)
 from web.wifi.route_guards import (
     requires_diagnosis_result,
     requires_house_layout,
@@ -104,128 +95,28 @@ def heatmap():
     return render_template("wifi/screens/heatmap.html")
 
 
-@WIFI_BP.route("/diagnosis", methods=["GET", "POST"])
-def diagnosis():
-    """
-    ⑤ 診断質問画面。
-
-    前提条件は「なし」。間取り作成・ヒートマップの確認とは
-    順序関係を持たない独立したモジュールとして位置づける
-    （どちらを先に行ってもよく、片方だけで終えてもよい）。
-
-    質問データ・分岐ロジックは src/web/diagnosis/engine.py
-    （担当Eが実装したもの）を利用する。このルート関数の役割は、
-    セッション状態の読み書き（wifi_session.py 経由）と、
-    質問→次の質問／結果 の画面遷移だけを担当し、
-    「どの質問の次にどの質問が来るか」といった診断のロジック自体は
-    engine.py 側の責務として、ここには書かない
-    （CLAUDE.md 規則6：計算ロジックと診断条件をUIに直書きしない）。
-
-    GET: 現在の質問（診断が未開始なら最初の質問）を表示する。
-    POST: 選ばれた回答を記録し、次の質問または結果画面へ進む。
-    """
-    diagnosis_state = wifi_session.get_diagnosis()
-
-    if request.method == "POST":
-        # POSTの際は、diagnosis_state が None（診断未開始）になっているのは
-        # 想定外の状態（フォームの改ざんなど）なので、質問画面を出し直す。
-        if diagnosis_state is None or diagnosis_state.get("current_question_id") is None:
-            return redirect(url_for("app.wifi.diagnosis"))
-
-        current_question_id = diagnosis_state["current_question_id"]
-        answer_id = request.form.get("answer_id")
-
-        if not validate_answer(current_question_id, answer_id):
-            # 不正な回答IDが送られてきた場合、CLAUDE.mdの「エラーは
-            # 何が起きたか＋どうすればいいかを日本語で」に従い、
-            # 同じ質問画面にエラーメッセージ付きで戻す。
-            question = get_question(current_question_id)
-            return render_template(
-                "wifi/screens/diagnosis.html",
-                question=question,
-                error_message="選択肢を選んでからお進みください。",
-                has_house_layout=wifi_session.has_house_layout(),
-            )
-
-        wifi_session.add_diagnosis_answer(current_question_id, answer_id)
-        answers = wifi_session.get_diagnosis()["answers"]
-
-        next_step = determine_next_step(current_question_id, answer_id, answers)
-
-        if next_step["status"] == "result":
-            result = build_diagnosis_result(
-                next_step["cause_id"], answers, diagnosis_state["diagnosis_id"]
-            )
-            wifi_session.save_diagnosis_result(result)
-
-            # 確信度が低い（confidence == "low"）場合は「原因不明」画面へ、
-            # それ以外は「買い替え・対策あり」画面へ振り分ける
-            # （CLAUDE.md 4-3: confidence は high/medium/low の3値）。
-            if result["confidence"] == "low":
-                return redirect(url_for("app.wifi.result_unknown"))
-            return redirect(url_for("app.wifi.result_replacement"))
-
-        wifi_session.set_current_question(next_step["next_question_id"])
-        return redirect(url_for("app.wifi.diagnosis"))
-
-    # GET: 診断がまだ始まっていなければ、新しい診断として開始する。
-    if diagnosis_state is None:
-        diagnosis_id = generate_diagnosis_id()
-        wifi_session.start_diagnosis(diagnosis_id)
-        question = get_initial_question()
-        wifi_session.set_current_question(question["id"])
-    else:
-        current_question_id = diagnosis_state["current_question_id"]
-        question = get_question(current_question_id)
-
-    logging.debug("診断質問画面にアクセスされました")
-    return render_template(
-        "wifi/screens/diagnosis.html",
-        question=question,
-        error_message=None,
-        has_house_layout=wifi_session.has_house_layout(),
-    )
-
-
-@WIFI_BP.route("/result/replacement")
-@requires_diagnosis_result
-def result_replacement():
-    """
-    ⑥ 結果：買い替え・対策あり画面。
-
-    前提条件：診断が完了し、結果が出ていること。
-    ヒートマップを見ているかどうかは問わない（診断質問だけで
-    ここに到達できる利用者もいる想定）。
-    間取り未作成の利用者には「より詳しく知りたい場合は間取りを作成する」
-    という導線を出すため、has_house_layout をテンプレートに渡す。
-    """
-    logging.debug("結果画面（買い替え・対策あり）にアクセスされました")
-    return render_template(
-        "wifi/screens/result_replacement.html",
-        result=wifi_session.get_diagnosis()["result"],
-        has_house_layout=wifi_session.has_house_layout(),
-    )
-
-
-@WIFI_BP.route("/result/unknown")
-@requires_diagnosis_result
-def result_unknown():
-    """
-    ⑦ 結果：原因不明画面。
-
-    前提条件：診断が完了し、結果が出ていること
-    （確信度が低いと判定された場合にこちらの画面に案内される想定だが、
-    その振り分けの判断は診断ロジック側の責務であり、
-    このルート自体は「診断結果があるかどうか」だけをチェックする）。
-    result_replacement と同様、間取り未作成なら間取り作成へ、
-    作成済みならヒートマップへの導線を出すため has_house_layout を渡す。
-    """
-    logging.debug("結果画面（原因不明）にアクセスされました")
-    return render_template(
-        "wifi/screens/result_unknown.html",
-        result=wifi_session.get_diagnosis()["result"],
-        has_house_layout=wifi_session.has_house_layout(),
-    )
+# 注意：CLAUDE.mdのルート表にある⑤診断質問・⑥結果（買い替え）・
+# ⑦結果（原因不明）に相当する画面は、以前はここに自作の
+# /diagnosis, /result/replacement, /result/unknown ルートとして
+# 実装していたが、mainブランチに存在する診断機能一式
+# （src/web/diagnosis/routes.py の DIAGNOSIS_BP）と役割・URLが
+# 完全に重複するため、そちらに統合し、ここでは削除した。
+#
+# DIAGNOSIS_BPは以下のURLを提供する：
+#   /diagnosis/         - 診断開始画面（endpoint名: app.diagnosis.start）
+#                          「診断を始める」ボタンのみを表示する画面
+#   /diagnosis/start    - POST専用（endpoint名: app.diagnosis.begin）
+#                          診断を初期化して質問画面へ進む処理
+#   /diagnosis/question - 質問画面（GET, endpoint名: app.diagnosis.question）
+#   /diagnosis/answer   - POST専用。回答を記録して次へ進む
+#   /diagnosis/result   - 結果画面（1画面でconfidenceにより表示を切替。
+#                          CLAUDE.mdの⑥⑦の区別はここで一元化されている）
+#   /diagnosis/restart  - POST専用。診断をやり直す
+#
+# 他画面から「診断質問へ進む」リンクを作る場合は、いきなり質問を
+# 表示するのではなく、まず開始画面を経由させるため
+# url_for("app.diagnosis.start") を使う（"start"がendpoint名で、
+# URLの見た目は "/diagnosis/" になる点に注意）。
 
 
 @WIFI_BP.route("/support-id")

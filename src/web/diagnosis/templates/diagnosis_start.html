@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  回線診断
+{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('app.diagnosis.static', filename='diagnosis.css') }}">
+
+  <div class="diagnosis-page">
+    <div class="diagnosis-card">
+      <h1 class="diagnosis-card__title">Wi-Fiのお困りごと診断</h1>
+      <p class="diagnosis-card__note">
+        いくつかの質問に答えるだけで、通信が遅い・つながらない原因を絞り込みます。
+      </p>
+
+      <form method="post" action="{{ url_for('app.diagnosis.begin') }}">
+        <button type="submit" class="diagnosis-button diagnosis-button--primary">
+          診断を始める
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
