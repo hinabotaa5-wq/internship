@@ -95,9 +95,15 @@
 
       function renderSuccess(container, ticketNumber) {
         const div = document.createElement("div");
-        div.className = "alert alert-success mb-0";
+        div.className = "alert alert-success";
         div.textContent = `受付番号: ${ticketNumber}`;
-        container.replaceChildren(div);
+
+        const link = document.createElement("a");
+        link.href = "{{ url_for('app.staff_ticket') }}";
+        link.className = "btn btn-primary mt-2";
+        link.textContent = "コールセンターに問い合わせる";
+
+        container.replaceChildren(div, link);
       }
 
       document.getElementById("submit-btn").addEventListener("click", async () => {
