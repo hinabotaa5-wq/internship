@@ -96,7 +96,13 @@
 
     <div class="fp-actions">
       <button type="button" id="fp-next" class="fp-btn fp-btn-primary">この間取りで次へすすむ</button>
-      <a class="fp-back" href="{{ url_for('app.index') }}">トップにもどる</a>
+      {#
+        統合の都合上、リンク先を app.index から app.wifi.top に変更している。
+        本ブランチではトップページ("/")を提供する index() エンドポイント
+        （Bootstrapサンプル紹介ページ）を廃止し、WIFI_BP.top() に
+        差し替えているため、旧エンドポイント名 app.index は存在しない。
+      #}
+      <a class="fp-back" href="{{ url_for('app.wifi.top') }}">トップにもどる</a>
     </div>
 
     <script type="application/json" id="fp-initial-layout">{{ room_layout | tojson }}</script>

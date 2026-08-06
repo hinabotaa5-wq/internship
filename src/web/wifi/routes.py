@@ -5,20 +5,22 @@
 ■ 「ルート」とは
 Flaskでいう「ルート」とは、「あるURL（例: /layout）にアクセスされたときに、
 どの処理を実行して、どんな画面（HTML）を返すか」の対応関係のことです。
-@WIFI_BP.route("/layout") のように書くと、「/layout にアクセスされたら、
+@WIFI_BP.route("/support-id") のように書くと、「/support-id にアクセスされたら、
 すぐ下に書いた関数を実行する」という意味になります。
 
-■ このファイルの現在の実装方針（UIの枠だけを作る段階）
-CLAUDE.mdの方針に基づき、この段階では各画面の「中身」（間取りキャンバスの
-描画やドラッグ操作など）はまだ実装しません。
-各ルートは、対応する空のテンプレート（プレースホルダー）を表示するだけの
-状態にしておき、後から各担当（B・D・E）が中身を実装していきます。
+■ このファイルが担当するルート
+CLAUDE.mdのルート表にある8画面のうち、①トップページと⑧サポートID発行
+画面だけをここで担当する。②③④⑤（住宅レイアウト作成・ルーター配置・
+ヒートマップ表示・診断質問）は、いずれもmainブランチに存在する各担当の
+実装一式（FLOORPLAN_BP・HEATMAP_BP・DIAGNOSIS_BP）に統合済みで、
+このファイルには存在しない（src/web/routes.py でそれぞれ個別に
+Blueprint登録されている）。
 
 ■ ルートガードについて
 CLAUDE.mdには「前提を満たさないルートへの直接アクセスは、
 必要な画面へリダイレクトする」という要件があります。
 このファイルでは、route_guards.py に定義したデコレータ
-（@requires_house_layout など）をルート関数に付けることで、
+（@requires_diagnosis_result）をルート関数に付けることで、
 この要件を満たしています。
 デコレータの仕組み自体の説明は route_guards.py 側のコメントを参照。
 """
@@ -27,11 +29,7 @@ import logging
 
 from flask import Blueprint, render_template
 
-from web.wifi.route_guards import (
-    requires_diagnosis_result,
-    requires_house_layout,
-    requires_router_position,
-)
+from web.wifi.route_guards import requires_diagnosis_result
 
 # Blueprint とは、Flaskで「関連するルートをひとまとめにするための単位」。
 # ここでは、Wi-Fi診断アプリの画面群を1つのBlueprintとしてまとめておき、
@@ -56,67 +54,33 @@ def top():
     return render_template("wifi/screens/top.html")
 
 
-@WIFI_BP.route("/layout")
-def layout():
-    """
-    ② 住宅レイアウト作成画面。
-
-    前提条件が「なし」なので、トップページを経由しなくても
-    直接アクセスできる（ルートガードなし）。
-    """
-    logging.debug("住宅レイアウト作成画面にアクセスされました")
-    return render_template("wifi/screens/layout.html")
-
-
-@WIFI_BP.route("/router-placement")
-@requires_house_layout
-def router_placement():
-    """
-    ③ ルーター配置画面。
-
-    前提条件：間取りが作成済みであること。
-    @requires_house_layout デコレータが、間取りが無い場合に
-    自動的に /layout へリダイレクトしてくれるため、
-    この関数の中では「間取りがある」ことを前提にした処理だけを書ける。
-    """
-    logging.debug("ルーター配置画面にアクセスされました")
-    return render_template("wifi/screens/router_placement.html")
-
-
-@WIFI_BP.route("/heatmap")
-@requires_router_position
-def heatmap():
-    """
-    ④ ヒートマップ表示画面。
-
-    前提条件：間取り＋ルーターの設置位置が保存済みであること。
-    """
-    logging.debug("ヒートマップ表示画面にアクセスされました")
-    return render_template("wifi/screens/heatmap.html")
-
-
-# 注意：CLAUDE.mdのルート表にある⑤診断質問・⑥結果（買い替え）・
-# ⑦結果（原因不明）に相当する画面は、以前はここに自作の
+# 注意：CLAUDE.mdのルート表にある②住宅レイアウト作成・③ルーター配置・
+# ④ヒートマップ表示・⑤診断質問・⑥結果（買い替え）・⑦結果（原因不明）に
+# 相当する画面は、以前はここに自作の /layout, /router-placement, /heatmap,
 # /diagnosis, /result/replacement, /result/unknown ルートとして
-# 実装していたが、mainブランチに存在する診断機能一式
-# （src/web/diagnosis/routes.py の DIAGNOSIS_BP）と役割・URLが
-# 完全に重複するため、そちらに統合し、ここでは削除した。
+# 実装していたが、mainブランチに存在する各担当の実装一式
+# （FLOORPLAN_BP・HEATMAP_BP・DIAGNOSIS_BP）と役割・URLが完全に
+# 重複するため、そちらに統合し、ここでは削除した。
 #
-# DIAGNOSIS_BPは以下のURLを提供する：
+# FLOORPLAN_BP（住宅レイアウト作成・ルーター配置。担当B）：
+#   /layout           - 住宅レイアウト作成画面
+#   /router-placement - ルーター配置画面（間取り未作成なら/layoutへ戻す）
+#   /api/floorplan     - 間取りデータのJSON API（GET/PUT）
+#
+# HEATMAP_BP（ヒートマップ表示。担当D）：
+#   /heatmap - ヒートマップ表示画面（前提未達なら作成元の画面へ戻す）
+#
+# DIAGNOSIS_BP（診断質問。担当E）：
 #   /diagnosis/         - 診断開始画面（endpoint名: app.diagnosis.start）
-#                          「診断を始める」ボタンのみを表示する画面
 #   /diagnosis/start    - POST専用（endpoint名: app.diagnosis.begin）
-#                          診断を初期化して質問画面へ進む処理
 #   /diagnosis/question - 質問画面（GET, endpoint名: app.diagnosis.question）
 #   /diagnosis/answer   - POST専用。回答を記録して次へ進む
-#   /diagnosis/result   - 結果画面（1画面でconfidenceにより表示を切替。
-#                          CLAUDE.mdの⑥⑦の区別はここで一元化されている）
+#   /diagnosis/result   - 結果画面（1画面でconfidenceにより表示を切替）
 #   /diagnosis/restart  - POST専用。診断をやり直す
 #
-# 他画面から「診断質問へ進む」リンクを作る場合は、いきなり質問を
-# 表示するのではなく、まず開始画面を経由させるため
-# url_for("app.diagnosis.start") を使う（"start"がendpoint名で、
-# URLの見た目は "/diagnosis/" になる点に注意）。
+# 他画面からこれらへ遷移する場合は、それぞれ
+# url_for("app.floorplan.layout") / url_for("app.floorplan.router_placement") /
+# url_for("app.heatmap.heatmap") / url_for("app.diagnosis.start") を使う。
 
 
 @WIFI_BP.route("/support-id")

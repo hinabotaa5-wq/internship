@@ -5,6 +5,8 @@ from flask_login import current_user, login_required
 
 from web.auth.routes import AUTH_BP
 from web.diagnosis.routes import DIAGNOSIS_BP
+from web.floorplan.routes import FLOORPLAN_BP
+from web.heatmap.routes import HEATMAP_BP
 from web.wifi.routes import WIFI_BP
 
 APP_BP = Blueprint("app", __name__)
@@ -19,20 +21,28 @@ APP_BP.register_blueprint(AUTH_BP)
 # "/diagnosis/restart" を提供する。
 APP_BP.register_blueprint(DIAGNOSIS_BP)
 
+# 住宅レイアウト作成・ルーター配置用のエンドポイントを追加する
+# （担当Bのmain側の実装：/layout, /router-placement, /api/floorplan を一式で提供）
+# 以前は WIFI_BP 側に同名の /layout・/router-placement （枠のみの
+# プレースホルダー）があったが、DIAGNOSIS_BP と同様の理由（役割・URLの
+# 完全な重複）で FLOORPLAN_BP に統合し、WIFI_BP 側の定義は削除した。
+APP_BP.register_blueprint(FLOORPLAN_BP)
+
+# ヒートマップ表示・改善提案用のエンドポイントを追加する
+# （担当Dのmain側の実装：/heatmap を提供。内部で web.floorplan.state の
+# 間取りセッションを読み取るため、FLOORPLAN_BP と対になっている）
+# 以前は WIFI_BP 側に同名の /heatmap（枠のみのプレースホルダー）があったが、
+# 同様の理由で HEATMAP_BP に統合し、WIFI_BP 側の定義は削除した。
+APP_BP.register_blueprint(HEATMAP_BP)
+
 # Wi-Fi診断アプリの画面用のエンドポイントを追加する
-# （トップページ "/" を含め、CLAUDE.md記載の8画面のうち診断質問以外の
-# ルートはここに登録されている）
+# （トップページ "/" とサポートID発行画面 "/support-id" が、CLAUDE.md
+# 記載の8画面のうち本ブランチでまだ WIFI_BP が担当している範囲）
 #
-# 注意：WIFI_BP 側にも "/diagnosis" ルートが定義されていたが、これは
-# DIAGNOSIS_BP（"/diagnosis/question" 等）と役割・URLが重複するため、
-# src/web/wifi/routes.py 側の /diagnosis ルート定義を削除した。
-# トップページ等から診断質問へ遷移する場合は、
-# url_for("app.diagnosis.start") を使う。
-#
-# main側の FLOORPLAN_BP（/layout, /router-placement）・HEATMAP_BP（/heatmap）
-# は、WIFI_BP がすでに同じURLを提供しているため、ここでは登録しない
-# （両方registerするとURLが重複してしまう）。floorplan・heatmapの中身の
-# 統合は別タスクとして扱う。
+# 注意：診断質問（DIAGNOSIS_BP）・住宅レイアウト作成・ルーター配置
+# （FLOORPLAN_BP）・ヒートマップ（HEATMAP_BP）は、いずれも main側の
+# 実装一式（Python・HTML・CSS・JS）に統合済みで、WIFI_BP 側の対応する
+# ルート・テンプレートは削除済み。
 APP_BP.register_blueprint(WIFI_BP)
 
 

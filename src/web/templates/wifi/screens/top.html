@@ -1,21 +1,21 @@
 {#
   ① トップ画面（/）
 
-  /layout と /diagnosis/ は既に実際のページとして存在するため、
-  「枠だけのプレースホルダー」ではなく、それぞれのURLへ直接遷移する
-  リンクをここに置く。
+  /layout（住宅レイアウト作成）と /diagnosis/（診断開始画面）は
+  いずれもmainブランチに実装されている各担当の機能一式
+  （src/web/floorplan, src/web/diagnosis 配下のPython・HTML・CSS・JS）
+  として既に実際のページとして存在するため、「枠だけのプレースホルダー」
+  ではなく、それぞれのURLへ直接遷移するリンクをここに置く。
 
   この画面のボタンは、共通CSS（components.css の .btn クラスなど）を
   使わず、<a> タグに直接インラインstyleを当てただけの、
   最小限の自己完結したHTMLにしている
   （このページのボタンに限り、共通CSSに依存しない実装にする指示のため）。
 
-  「質問だけで診断する」のリンク先は、mainブランチに実装されている
-  診断機能一式（src/web/diagnosis 配下のPython・HTML・CSS）が提供する
-  診断開始画面（DIAGNOSIS_BP の "/diagnosis/"、endpoint名は
-  app.diagnosis.start）にそのまま直接遷移する。この診断機能自体は
-  Bootstrap版の layout.html を継承した、独自のHTML・CSS（diagnosis.css）
-  を使っており、共通CSS（wifi/css/components.css）には依存していない。
+  リンク先の2つの機能（floorplan・diagnosis）自体は、いずれも
+  Bootstrap版の layout.html を継承した、それぞれ独自のHTML・CSS
+  （floorplan.css / diagnosis.css）を使っており、共通CSS
+  （wifi/css/components.css）には依存していない。
 #}
 {% extends "wifi/base.html" %}
 
@@ -38,10 +38,11 @@
 
     <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
       {#
-        /layout（住宅レイアウト作成）へ直接遷移するリンク。
+        /layout（住宅レイアウト作成。main側のFLOORPLAN_BPが提供する
+        ページ構成をそのまま使う）へ直接遷移するリンク。
         url_for() でルートを解決する（CLAUDE.md 規則5）。
       #}
-      <a href="{{ url_for('app.wifi.layout') }}" style="
+      <a href="{{ url_for('app.floorplan.layout') }}" style="
           display:inline-block;
           min-width:220px;
           text-align:center;

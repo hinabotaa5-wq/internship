@@ -42,11 +42,15 @@ def login():
         return render_template("login.html", form=form), 403
 
     login_user(user)
-    next = request.args.get("next") or url_for("app.index")
+    # 統合の都合上、リンク先を app.index から app.wifi.top に変更している。
+    # 本ブランチではトップページ("/")を提供する index() エンドポイント
+    # （Bootstrapサンプル紹介ページ）を廃止し、WIFI_BP.top() に
+    # 差し替えているため、旧エンドポイント名 app.index は存在しない。
+    next = request.args.get("next") or url_for("app.wifi.top")
     return redirect(next)
 
 
 @AUTH_BP.route("/logout", methods=["GET"])
 def logout():
     logout_user()
-    return redirect(url_for("app.index"))
+    return redirect(url_for("app.wifi.top"))

@@ -115,7 +115,13 @@
       <button type="button" id="hm-next" class="hm-btn hm-btn-primary">質問にすすむ</button>
       <a class="hm-back" href="{{ router_placement_url }}">機器の場所を直す</a>
       <a class="hm-back" href="{{ layout_url }}">間取りを直す</a>
-      <a class="hm-back" href="{{ url_for('app.index') }}">トップにもどる</a>
+      {#
+        統合の都合上、リンク先を app.index から app.wifi.top に変更している。
+        本ブランチではトップページ("/")を提供する index() エンドポイント
+        （Bootstrapサンプル紹介ページ）を廃止し、WIFI_BP.top() に
+        差し替えているため、旧エンドポイント名 app.index は存在しない。
+      #}
+      <a class="hm-back" href="{{ url_for('app.wifi.top') }}">トップにもどる</a>
     </div>
 
     <script type="application/json" id="hm-initial-layout">{{ room_layout | tojson }}</script>
