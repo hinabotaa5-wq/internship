@@ -26,7 +26,7 @@
     <div class="card mb-4">
       <div class="card-body">
         <h5 class="card-title">Q&A 回答履歴</h5>
-        <pre id="qa-history-preview" class="bg-light p-3 rounded">{{ diagnosis_state.qa_history | tojson(indent=2) }}</pre>
+        <div id="qa-history-preview" class="bg-light p-3 rounded"></div>
       </div>
     </div>
 
@@ -51,9 +51,12 @@
 
     <script type="module">
       import { renderStaffHeatmap } from "{{ url_for('static', filename='wifi/staff_heatmap.js') }}";
+      import { renderMarkdown, qaHistoryToMarkdown } from "{{ url_for('static', filename='wifi/js/markdown.js') }}";
 
       const CREATE_URL = "{{ url_for('app.tickets.create_ticket') }}";
       const DIAGNOSIS_STATE = {{ diagnosis_state | tojson }};
+
+      renderMarkdown(document.getElementById("qa-history-preview"), qaHistoryToMarkdown(DIAGNOSIS_STATE.qa_history));
 
       function renderRoomLayoutPreview(container, roomLayout) {
         if (!roomLayout || !roomLayout.rooms || !roomLayout.rooms.length) {

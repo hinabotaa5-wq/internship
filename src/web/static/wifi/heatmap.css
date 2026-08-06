@@ -439,3 +439,13 @@
     animation: none !important;
   }
 }
+
+/* --- Q&A履歴・診断結果のMarkdown表示（markdown.js） --- */
+.markdown-heading {
+  margin-top: 0;
+  font-weight: 700;
+}
+
+.markdown-heading:not(:first-child) {
+  margin-top: 1rem;
+}

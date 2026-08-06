@@ -27,6 +27,7 @@
 
   <script type="module">
     import { renderStaffHeatmap, LEVEL_TEXT } from "{{ url_for('static', filename='wifi/staff_heatmap.js') }}";
+    import { renderMarkdown, qaHistoryToMarkdown, diagnosisResultToMarkdown } from "{{ url_for('static', filename='wifi/js/markdown.js') }}";
 
     const GET_URL_BASE = "{{ url_for('app.tickets.get_ticket', ticket_number='__TICKET_NUMBER__') }}";
 
@@ -95,32 +96,15 @@
 
       renderHeatmap(container, data.room_layout);
 
-      const qaHeading = document.createElement("h5");
-      qaHeading.className = "mt-4";
-      qaHeading.textContent = "Q&A回答履歴（qa_history）";
-      container.appendChild(qaHeading);
+      const qaContainer = document.createElement("div");
+      qaContainer.className = "bg-light p-3 rounded mt-4";
+      renderMarkdown(qaContainer, qaHistoryToMarkdown(data.qa_history));
+      container.appendChild(qaContainer);
 
-      const qaPre = document.createElement("pre");
-      qaPre.className = "bg-light p-3 rounded";
-      qaPre.textContent = JSON.stringify(data.qa_history, null, 2);
-      container.appendChild(qaPre);
-
-      const diagnosisHeading = document.createElement("h5");
-      diagnosisHeading.className = "mt-4";
-      diagnosisHeading.textContent = "診断結果（diagnosis_result）";
-      container.appendChild(diagnosisHeading);
-
-      if (data.diagnosis_result) {
-        const diagnosisPre = document.createElement("pre");
-        diagnosisPre.className = "bg-light p-3 rounded";
-        diagnosisPre.textContent = JSON.stringify(data.diagnosis_result, null, 2);
-        container.appendChild(diagnosisPre);
-      } else {
-        const noDiagnosis = document.createElement("p");
-        noDiagnosis.className = "text-muted";
-        noDiagnosis.textContent = "診断を経ていない問い合わせです。";
-        container.appendChild(noDiagnosis);
-      }
+      const diagnosisContainer = document.createElement("div");
+      diagnosisContainer.className = "bg-light p-3 rounded mt-4";
+      renderMarkdown(diagnosisContainer, diagnosisResultToMarkdown(data.diagnosis_result));
+      container.appendChild(diagnosisContainer);
     }
 
     function renderError(container, message) {
