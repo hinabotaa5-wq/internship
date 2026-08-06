@@ -20,9 +20,10 @@
 | `ticket_number` | String(16), unique, index | 受付番号。`NIF-XXXXXX` 形式（`X` は6文字のランダムな英数字）。ユーザー・スタッフ間のやりとりで使う識別子 |
 | `room_layout` | JSON | 間取りデータ（だいき担当のデータ構造をそのまま保存） |
 | `qa_history` | JSON | Q&A 回答履歴（たいよう担当のデータ構造をそのまま保存） |
+| `diagnosis_result` | JSON, nullable | 原因切り分け診断（`/diagnosis`）の結果一式。診断を経ていない問い合わせでは `null` |
 | `created_at` | DateTime | 受付日時（DB側で自動設定される） |
 
-`room_layout` と `qa_history` はどちらも `nullable=False` で、登録時に両方とも必須です。
+`room_layout` と `qa_history` はどちらも `nullable=False` で、登録時に両方とも必須です。`diagnosis_result` は任意項目です。
 
 ### 受付番号のルール
 
@@ -65,11 +66,23 @@
   },
   "qa_history": [
     { "q": "ルーターの電波が弱い", "a": "金属家具から離してください" }
-  ]
+  ],
+  "diagnosis_result": {
+    "diagnosis_id": "HM-20260805-A1B2C3",
+    "cause_id": "router_location",
+    "cause_name": "ルーターの設置場所による電波不足",
+    "confidence": "high",
+    "reason": "ルーターの近くでは正常ですが、離れた部屋で速度が落ちています。",
+    "recommended_action": ["ルーターを家の中央に近い場所へ移動してください。"],
+    "show_heatmap": true,
+    "support_required": false,
+    "support_message": null
+  }
 }
 ```
 
 - `room_layout`、`qa_history` はどちらも必須。片方でも欠けている場合は `400 Bad Request`（`description: "room_layout と qa_history は必須です"`）を返す
+- `diagnosis_result` は任意。診断（`/diagnosis`）を経ずに問い合わせる場合は省略、または `null` を渡してよい
 - 内部の構造は特に制限していない（JSON型カラムに保存するため、フロント担当側の都合に合わせて自由な構造を入れてよい）
 
 **レスポンス例（201 Created）**
@@ -109,6 +122,7 @@ GET /api/tickets/NIF-4F7K2Q
   "qa_history": [
     { "q": "ルーターの電波が弱い", "a": "金属家具から離してください" }
   ],
+  "diagnosis_result": null,
   "created_at": "2026-08-04T12:34:56.789012"
 }
 ```
@@ -133,7 +147,7 @@ GET /api/tickets/NIF-4F7K2Q
 - テンプレート: `src/web/templates/staff_ticket.html`
 - コールセンター側スタッフ向けの照会ページ
 - 受付番号を入力し「照会する」ボタン（または Enter キー）を押すと `GET /api/tickets/<ticket_number>` を呼び出す
-- 受付番号・受付日時のほか、`room_layout` と `qa_history` をそれぞれ見出し付きで JSON 整形表示する
+- 受付番号・受付日時のほか、`room_layout`・`qa_history`・`diagnosis_result` をそれぞれ見出し付きで JSON 整形表示する（`diagnosis_result` が `null` の場合は「診断を経ていない問い合わせです。」と表示）
 
 > [!Note]
 > 現時点では `room_layout` / `qa_history` はそのまま JSON テキストとして表示しているだけの仮実装です。だいき担当の間取り描画コンポーネント（レイアウト表示・ヒートマップ）が確定したら、`staff_ticket.html` 内の `renderTicket()` 関数のうち JSON 表示部分を、実際のコンポーネント呼び出しに差し替える想定です。API のレスポンス形式（`room_layout` の中身）自体は変更不要です。

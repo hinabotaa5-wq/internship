@@ -26,6 +26,7 @@ def create_ticket():
     body = request.get_json(silent=True) or {}
     room_layout = body.get("room_layout")
     qa_history = body.get("qa_history")
+    diagnosis_result = body.get("diagnosis_result")
 
     if room_layout is None or qa_history is None:
         abort(400, description="room_layout と qa_history は必須です")
@@ -35,6 +36,7 @@ def create_ticket():
             ticket_number=_generate_ticket_number(),
             room_layout=room_layout,
             qa_history=qa_history,
+            diagnosis_result=diagnosis_result,
         )
         DB.session.add(ticket)
         try:
@@ -60,6 +62,7 @@ def get_ticket(ticket_number: str):
             "ticket_number": ticket.ticket_number,
             "room_layout": ticket.room_layout,
             "qa_history": ticket.qa_history,
+            "diagnosis_result": ticket.diagnosis_result,
             "created_at": ticket.created_at.isoformat(),
         }
     )

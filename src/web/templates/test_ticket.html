@@ -49,6 +49,17 @@
       qa_history: [
         { q: "ルーターの電波が弱い", a: "金属家具から離してください" },
       ],
+      diagnosis_result: {
+        diagnosis_id: "HM-20260806-DUMMY1",
+        cause_id: "router_location",
+        cause_name: "ルーターの設置場所による電波不足",
+        confidence: "high",
+        reason: "ルーターの近くでは正常ですが、離れた部屋で速度が落ちています。",
+        recommended_action: ["ルーターを家の中央に近い場所へ移動してください。"],
+        show_heatmap: true,
+        support_required: false,
+        support_message: null,
+      },
     };
 
     function renderJson(container, data) {
