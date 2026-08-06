@@ -7,6 +7,8 @@ from web.auth.routes import AUTH_BP
 from web.diagnosis.routes import DIAGNOSIS_BP
 from web.floorplan.routes import FLOORPLAN_BP
 from web.heatmap.routes import HEATMAP_BP
+from web.session import get_diagnosis_session
+from web.tickets import TICKETS_BP
 from web.wifi.routes import WIFI_BP
 
 APP_BP = Blueprint("app", __name__)
@@ -36,14 +38,21 @@ APP_BP.register_blueprint(FLOORPLAN_BP)
 APP_BP.register_blueprint(HEATMAP_BP)
 
 # Wi-Fi診断アプリの画面用のエンドポイントを追加する
-# （トップページ "/" とサポートID発行画面 "/support-id" が、CLAUDE.md
-# 記載の8画面のうち本ブランチでまだ WIFI_BP が担当している範囲）
+# （トップページ "/" が、CLAUDE.md記載の8画面のうち本ブランチで
+# WIFI_BP が担当している範囲）
 #
 # 注意：診断質問（DIAGNOSIS_BP）・住宅レイアウト作成・ルーター配置
 # （FLOORPLAN_BP）・ヒートマップ（HEATMAP_BP）は、いずれも main側の
 # 実装一式（Python・HTML・CSS・JS）に統合済みで、WIFI_BP 側の対応する
-# ルート・テンプレートは削除済み。
+# ルート・テンプレートは削除済み。⑧サポートID発行画面（/support-id）も
+# 同様の理由でこのファイル側（担当A実装）に統合し、WIFI_BP側は削除した。
 APP_BP.register_blueprint(WIFI_BP)
+
+# 問い合わせ受付用のエンドポイントを追加する
+# （担当A: /api/tickets。support_id.html が送信ボタンから
+# url_for("app.tickets.create_ticket") でこのAPIを呼び出すため、
+# /support-id を機能させるには本Blueprintの登録が必須。）
+APP_BP.register_blueprint(TICKETS_BP)
 
 
 @APP_BP.route("/secret")
@@ -65,14 +74,18 @@ def secret():
     # 画面デザイン完了後、動作確認中
     return render_template("secret.html", user=current_user)
 
-# 以下、mainマージで取り込まれた次の3ルートは、いずれも本ブランチの
+
+@APP_BP.route("/support-id")
+def support_id():
+    logging.debug("送信前確認ページ（画面8）にアクセスされました")
+    diagnosis_state = get_diagnosis_session()
+    return render_template("support_id.html", diagnosis_state=diagnosis_state)
+
+# 以下、mainマージで取り込まれた次の2ルートは、いずれも本ブランチの
 # 対象スコープ外（今回は診断質問(diagnosis)のみを統合する）のため、
 # いったんこのファイルから削除した:
 #   - /test-ticket（担当A: Ticket API動作確認ページ）
 #   - /staff/tickets（担当A: コールセンター向け照会ページ）
-#   - /support-id（担当A: web.session.get_diagnosis_session に依存する
-#     送信前確認ページ。src/web/wifi/routes.py 側にも同名の /support-id
-#     ルートが既にあり、URLが重複するため）
-# これらの機能自体（web/tickets.py, web/session.py, テンプレート）は
+# これらの機能自体（web/tickets.py, テンプレート）は
 # ファイルとしては取り込まれているので、Ticket機能を統合する別タスクで
 # あらためて対応する。

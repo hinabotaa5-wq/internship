@@ -9,27 +9,22 @@ Flaskでいう「ルート」とは、「あるURL（例: /layout）にアクセ
 すぐ下に書いた関数を実行する」という意味になります。
 
 ■ このファイルが担当するルート
-CLAUDE.mdのルート表にある8画面のうち、①トップページと⑧サポートID発行
-画面だけをここで担当する。②③④⑤（住宅レイアウト作成・ルーター配置・
-ヒートマップ表示・診断質問）は、いずれもmainブランチに存在する各担当の
-実装一式（FLOORPLAN_BP・HEATMAP_BP・DIAGNOSIS_BP）に統合済みで、
+CLAUDE.mdのルート表にある8画面のうち、①トップページだけをここで
+担当する。②③④⑤（住宅レイアウト作成・ルーター配置・ヒートマップ表示・
+診断質問）は、いずれもmainブランチに存在する各担当の実装一式
+（FLOORPLAN_BP・HEATMAP_BP・DIAGNOSIS_BP）に統合済みで、
 このファイルには存在しない（src/web/routes.py でそれぞれ個別に
 Blueprint登録されている）。
-
-■ ルートガードについて
-CLAUDE.mdには「前提を満たさないルートへの直接アクセスは、
-必要な画面へリダイレクトする」という要件があります。
-このファイルでは、route_guards.py に定義したデコレータ
-（@requires_diagnosis_result）をルート関数に付けることで、
-この要件を満たしています。
-デコレータの仕組み自体の説明は route_guards.py 側のコメントを参照。
+⑧サポートID発行画面（/support-id）は、以前はここに枠だけの
+プレースホルダーとして実装していたが、担当A実装（web.session の
+診断セッションを参照して送信内容を確認するテンプレート
+templates/support_id.html）と役割・URLが完全に重複するため、
+APP_BP側（src/web/routes.py）の担当A実装に統合し、ここでは削除した。
 """
 
 import logging
 
 from flask import Blueprint, render_template
-
-from web.wifi.route_guards import requires_diagnosis_result
 
 # Blueprint とは、Flaskで「関連するルートをひとまとめにするための単位」。
 # ここでは、Wi-Fi診断アプリの画面群を1つのBlueprintとしてまとめておき、
@@ -81,15 +76,7 @@ def top():
 # 他画面からこれらへ遷移する場合は、それぞれ
 # url_for("app.floorplan.layout") / url_for("app.floorplan.router_placement") /
 # url_for("app.heatmap.heatmap") / url_for("app.diagnosis.start") を使う。
-
-
-@WIFI_BP.route("/support-id")
-@requires_diagnosis_result
-def support_id():
-    """
-    ⑧ サポートID発行画面。
-
-    前提条件：診断結果があること。
-    """
-    logging.debug("サポートID発行画面にアクセスされました")
-    return render_template("wifi/screens/support_id.html")
+#
+# ⑧サポートID発行画面（/support-id）は、APP_BP側（src/web/routes.py）の
+# 担当A実装（templates/support_id.html）に統合したため、ここには存在しない。
+# 遷移する場合は url_for("app.support_id") を使う。
