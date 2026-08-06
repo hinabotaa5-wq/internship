@@ -5,9 +5,14 @@ from flask_login import current_user, login_required
 
 from web.auth.models import User
 from web.auth.routes import AUTH_BP
-from web.diagnosis.routes import DIAGNOSIS_BP
+from web.diagnosis.routes import DIAGNOSIS_BP  
+
+
 from web.session import get_diagnosis_session
 from web.tickets import TICKETS_BP
+
+from web.floorplan.routes import FLOORPLAN_BP
+from web.heatmap.routes import HEATMAP_BP
 
 APP_BP = Blueprint("app", __name__)
 
@@ -19,6 +24,12 @@ APP_BP.register_blueprint(DIAGNOSIS_BP)
 
 # 問い合わせ受付用のエンドポイントを追加する
 APP_BP.register_blueprint(TICKETS_BP)
+
+# 住宅レイアウト作成・ルーター配置用のエンドポイントを追加する
+APP_BP.register_blueprint(FLOORPLAN_BP)
+
+# ヒートマップ表示・改善提案用のエンドポイントを追加する
+APP_BP.register_blueprint(HEATMAP_BP)
 
 
 @APP_BP.route("/")

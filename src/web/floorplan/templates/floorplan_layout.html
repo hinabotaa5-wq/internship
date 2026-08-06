@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  間取りをつくる
+{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/floorplan.css') }}">
+
+  <div class="fp-page" id="fp-layout-page" data-api-url="{{ api_url }}" data-next-url="{{ next_url }}">
+
+    <ol class="fp-steps">
+      <li aria-current="step">1. 間取りをつくる</li>
+      <li>2. 機器の場所を決める</li>
+      <li>3. 電波の状態をみる</li>
+    </ol>
+
+    <h1 class="fp-title">お住まいの間取りをつくってください</h1>
+    <p class="fp-lead">近い形のひな形を選んで、部屋の位置と広さを直すだけで大丈夫です。細かい寸法は合っていなくてかまいません。</p>
+
+    <p class="fp-note">表示値は間取りや設定から計算したシミュレーションによる目安です。実際の通信品質を保証するものではありません。</p>
+
+    <div class="fp-main">
+      <div>
+        <div class="fp-card">
+          <div class="fp-canvas-wrap">
+            <canvas id="fp-canvas" class="fp-canvas" tabindex="0" role="application" aria-label="間取り図。部屋を選ぶと矢印キーで動かせます。"></canvas>
+          </div>
+          <ul class="fp-legend">
+            <li><i class="fp-legend-outer"></i>外壁</li>
+            <li><i class="fp-legend-inner"></i>部屋のしきり</li>
+            <li><i class="fp-legend-water"></i>水まわりの壁</li>
+            <li><i class="fp-legend-door"></i>出入口</li>
+          </ul>
+          <p class="fp-help">部屋を指またはマウスでドラッグすると動かせます。部屋を選んでから矢印キーでも動かせます。壁と出入口は自動で引き直されます。</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="fp-card">
+          <h2>ひな形から始める</h2>
+          <div class="fp-row" id="fp-presets"></div>
+        </div>
+
+        <div class="fp-card">
+          <h2>部屋を足す</h2>
+          <div class="fp-row">
+            <label class="fp-field" style="margin-bottom:0">
+              <span class="visually-hidden-focusable" hidden>部屋の種類</span>
+              <select id="fp-room-type" class="fp-select" aria-label="足す部屋の種類"></select>
+            </label>
+            <button type="button" id="fp-add-room" class="fp-btn">この部屋を足す</button>
+          </div>
+        </div>
+
+        <div class="fp-card">
+          <h2>選んでいる部屋</h2>
+          <p class="fp-empty" id="fp-selected-empty">間取り図の部屋をタップすると、ここで名前と広さを直せます。</p>
+
+          <div id="fp-selected" hidden>
+            <label class="fp-field">
+              <span>部屋の名前</span>
+              <input type="text" id="fp-room-name" class="fp-select" maxlength="20" style="width:100%">
+            </label>
+
+            <p class="fp-size" id="fp-room-size"></p>
+
+            <div class="fp-field">
+              <span>よこの広さ（1歩=約0.65m）</span>
+              <div class="fp-row">
+                <button type="button" class="fp-btn fp-btn-step" data-fp-resize="width:-1" aria-label="よこを1歩ぶん狭くする">−</button>
+                <button type="button" class="fp-btn fp-btn-step" data-fp-resize="width:1" aria-label="よこを1歩ぶん広くする">＋</button>
+              </div>
+            </div>
+
+            <div class="fp-field">
+              <span>たての広さ（1歩=約0.65m）</span>
+              <div class="fp-row">
+                <button type="button" class="fp-btn fp-btn-step" data-fp-resize="height:-1" aria-label="たてを1歩ぶん狭くする">−</button>
+                <button type="button" class="fp-btn fp-btn-step" data-fp-resize="height:1" aria-label="たてを1歩ぶん広くする">＋</button>
+              </div>
+            </div>
+
+            <button type="button" id="fp-delete-room" class="fp-btn fp-btn-danger">この部屋を消す</button>
+          </div>
+        </div>
+
+        <div class="fp-card">
+          <h2>部屋の一覧</h2>
+          <ul class="fp-legend" id="fp-room-list" style="gap:0.5rem"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="fp-toast" class="fp-toast" role="status" aria-live="polite" data-tone="error" hidden></div>
+
+    <div class="fp-actions">
+      <button type="button" id="fp-next" class="fp-btn fp-btn-primary">この間取りで次へすすむ</button>
+      <a class="fp-back" href="{{ url_for('app.index') }}">トップにもどる</a>
+    </div>
+
+    <script type="application/json" id="fp-initial-layout">{{ room_layout | tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='wifi/layout_page.js') }}"></script>
+  </div>
+{% endblock %}
