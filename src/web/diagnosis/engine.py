@@ -616,8 +616,7 @@ def build_diagnosis_result(
     if cause["support_required"]:
         support_message = (
             f"診断ID {diagnosis_id} の内容についてご相談です。"
-            f"「{cause['cause_name']}」が疑われ、"
-            f"{'、'.join(cause['recommended_action'])}を確認しましたが解決しませんでした。"
+            f"「{cause['cause_name']}」が疑われます。"
         )
 
     return {
