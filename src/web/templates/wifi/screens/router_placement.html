@@ -26,20 +26,15 @@
 {% endblock %}
 
 {% block content %}
-  <div style="display:flex; gap: var(--space-4);">
-    {#
-      間取り＋ルーター配置キャンバス枠：
-      すでにある間取りの上に、親機をドラッグで置く操作をここに実装する予定。
-    #}
-    <div style="flex: 2;">
+  {#
+    .two-column-layout については layout.html のコメントを参照
+    （768px以上でのみ横並び、375pxのような狭い画面では縦積みにする）。
+  #}
+  <div class="two-column-layout">
+    <div class="two-column-layout__main">
       {{ ui.placeholder_frame("間取り＋ルーター配置キャンバス枠（ドラッグ操作）", height="360px") }}
     </div>
-
-    {#
-      機器・契約設定枠：ルーター世代・契約プラン・帯・人数・用途の入力を
-      ここに実装する予定（CLAUDE.md 4-1 の environment に対応）。
-    #}
-    <div style="width: 220px;">
+    <div class="two-column-layout__side">
       {{ ui.placeholder_frame("機器・契約設定枠", height="360px") }}
     </div>
   </div>

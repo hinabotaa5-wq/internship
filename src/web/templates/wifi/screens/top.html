@@ -1,12 +1,16 @@
 {#
   ① トップ画面（/）
 
-  現在のフェーズでは中身（実際のデザイン）を作らず、
-  「どの枠が置かれる予定か」だけを示すプレースホルダーで構成する。
-  docs/design/screens_and_flow.pdf の①トップ画面の枠取りに対応。
+  /layout と /diagnosis は既に実際のページとして存在するため、
+  「枠だけのプレースホルダー」ではなく、それぞれのURLへ直接遷移する
+  リンクをここに置く。
+
+  この画面のボタンは、共通CSS（components.css の .btn クラスなど）を
+  使わず、<a> タグに直接インラインstyleを当てただけの、
+  最小限の自己完結したHTMLにしている
+  （このページのボタンに限り、共通CSSに依存しない実装にする指示のため）。
 #}
 {% extends "wifi/base.html" %}
-{% import "wifi/macros/ui.html" as ui %}
 
 {% block title %}Wi-Fiかんたん診断{% endblock %}
 
@@ -18,31 +22,52 @@
 #}
 
 {% block content %}
-  <div style="display:flex; flex-direction:column; align-items:center; gap: var(--space-5); padding: var(--space-5) 0;">
+  <div style="display:flex; flex-direction:column; align-items:center; gap:24px; padding:24px 0;">
 
-    <p style="text-align:center; color: var(--color-text-muted); max-width: 480px;">
+    <p style="text-align:center; color:#5b6b85; max-width:480px;">
       お家のWi-Fiがなんとなく遅い・つながりにくい……そんなときに、
       原因と直し方の目安を確認できます。
     </p>
 
-    <div style="display:flex; gap: var(--space-4); flex-wrap: wrap; justify-content:center;">
+    <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
       {#
-        導線カード枠A：間取りから診断するルートへの入口。
-        中身（実際の文言・アイコンなど）はまだ決めず、枠だけを置く。
+        /layout（住宅レイアウト作成）へ直接遷移するリンク。
+        url_for() でルートを解決する（CLAUDE.md 規則5）。
       #}
-      <div style="width: 260px;">
-        {{ ui.placeholder_frame("導線カード枠（間取りから診断する）", height="140px") }}
-        {{ ui.button("はじめる", url=url_for('app.wifi.layout'), variant="primary", full_width=true) }}
-      </div>
+      <a href="{{ url_for('app.wifi.layout') }}" style="
+          display:inline-block;
+          min-width:220px;
+          text-align:center;
+          padding:12px 24px;
+          background-color:#2563eb;
+          color:#ffffff;
+          font-weight:700;
+          font-size:16px;
+          text-decoration:none;
+          border-radius:8px;
+        ">
+        間取りから診断する
+      </a>
 
       {#
-        導線カード枠B：質問だけで診断するルートへの入口。
-        間取りを作らずに診断質問画面へ直接進める。
+        /diagnosis（診断質問）へ直接遷移するリンク。
+        間取りを作らずに、質問だけで診断を始められる入口。
       #}
-      <div style="width: 260px;">
-        {{ ui.placeholder_frame("導線カード枠（質問だけで診断する）", height="140px") }}
-        {{ ui.button("質問に答える", url=url_for('app.wifi.diagnosis'), variant="secondary", full_width=true) }}
-      </div>
+      <a href="{{ url_for('app.wifi.diagnosis') }}" style="
+          display:inline-block;
+          min-width:220px;
+          text-align:center;
+          padding:12px 24px;
+          background-color:#ffffff;
+          color:#2563eb;
+          font-weight:700;
+          font-size:16px;
+          text-decoration:none;
+          border:2px solid #2563eb;
+          border-radius:8px;
+        ">
+        質問だけで診断する
+      </a>
     </div>
   </div>
 {% endblock %}

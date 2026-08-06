@@ -28,119 +28,135 @@
 <!DOCTYPE html>
 <html lang="ja">
 
-<head>
-  <meta charset="UTF-8">
-  {#
+  <head>
+    <meta charset="UTF-8">
+    {#
     viewport の設定は、スマートフォンでページを表示したときに
     「PC用の横幅で縮小表示される」のを防ぎ、実際の画面幅に合わせて
     正しいサイズで表示させるためのおまじない（定型文）。
     CLAUDE.mdの「PC・スマホ両対応」要件のために必須。
   #}
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  {#
+    {#
     ブラウザのタブに表示されるタイトル。
     各画面テンプレートが {% block title %}トップページ{% endblock %} のように
     上書きすることを想定し、ここではデフォルトの空表示にしておく。
   #}
-  <title>{% block title %}Wi-Fiかんたん診断{% endblock %}</title>
+    <title>
+      {% block title %}Wi-Fiかんたん診断{% endblock %}
+    </title>
 
-  {#
+    {#
     共通CSS変数（色・余白など）を読み込む。
     url_for('static', filename=...) を使うことで、CLAUDE.md規則5の
     「ルートは直書きせず url_for() で解決する」を満たしている。
     直接 "/static/wifi/css/variables.css" と書いてしまうと、
     本番環境でチーム名のプレフィックスが付く場合にリンクが壊れてしまう。
   #}
-  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/variables.css') }}">
 
-  {#
+    {#
     共通UI部品のCSS。variables.css より後に読み込む必要がある
     （components.css の中で var(--色の名前) を使っているため、
     先に変数が定義されていないと色が反映されない）。
   #}
-  <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='wifi/css/components.css') }}">
 
-  {#
+    {#
     画面ごとに追加のCSSやJSを<head>に入れたい場合のための差し込み穴。
     何も追加しない画面は、このブロックを何も書かなくてよい（空のままでよい）。
   #}
-  {% block extra_head %}{% endblock %}
-</head>
+    {% block extra_head %}{% endblock %}
+  </head>
 
-<body>
-  {#
+  <body>
+    {#
     ヘッダー：全画面共通で表示される部分。
-    左側に「戻る」ボタンを固定で置く（フェーズ1で決定した方針）。
-    各画面は個別に戻るボタンを実装する必要はない。
+
+    「戻る」ボタンは廃止した。代わりに、製品名ロゴ「Heat Mafty」を
+    常にヘッダー中央上部に表示し、ロゴ自体をクリックするとトップページ
+    （/）に戻れるようにする（CLAUDE.mdの「常に戻れる」要件は、
+    このロゴ経由でのトップページへの導線によって満たす）。
+
+    ロゴを常に中央に置くため、ヘッダーの内側を3列のグリッドにする：
+      左列：現状は空（将来、何か置く場合のための余白）
+      中央列：ロゴ（グリッドにより、左右の列の内容量に関係なく中央になる）
+      右列：ステップ表示
+    justify-content: space-between のような2要素の左右寄せだと、
+    右側の要素（ステップ表示）の有無や大きさによってロゴの見た目の位置が
+    左右にずれてしまうため、3列グリッドで「中央列は常に中央」を保証する。
   #}
-  <header class="wifi-header" style="
-      display: flex;
+    <header class="wifi-header" style="
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
+      gap: var(--space-2);
       padding: var(--space-3) var(--space-4);
       background-color: var(--color-bg-panel);
       border-bottom: 1px solid var(--color-border);
     ">
-    <div style="display: flex; align-items: center; gap: var(--space-3);">
+
+      {# 左列：現状は空。ヘッダーの3列構成を保つためのプレースホルダー。 #}
+      <div></div>
+
       {#
-        「戻る」ボタン。
-        ブラウザの「1つ前のページに戻る」機能を使うため、リンク先URLではなく
-        JavaScriptの history.back() を使う。
-        こうすることで、画面ごとに「1つ前はどの画面か」を意識せずに
-        済むようにしている（ブラウザが自動的に前の画面を覚えてくれる）。
-
-        href="#" だけだとページの先頭に飛んでしまうので、
-        onclick で history.back() を呼び、return false でリンクの
-        デフォルトの挙動（ページ移動）を止めている。
-      #}
-      <a href="#" onclick="history.back(); return false;"
-         class="btn btn--ghost" style="min-height: 36px;">
-        ← 戻る
+      中央列：製品名ロゴ「Heat Mafty」。
+      <a>タグでリンクにし、url_for()でトップページのルートを解決する
+      （CLAUDE.md 規則5：ルートは直書きせずurl_for()で解決する）。
+      文字装飾（下線）は消し、ロゴらしい太字の見た目にする。
+    #}
+      <a href="{{ url_for('app.wifi.top') }}" style="
+        justify-self: center;
+        font-weight: 700;
+        font-size: var(--font-size-large);
+        color: var(--color-text);
+        text-decoration: none;
+      ">
+        Heat Mafty
       </a>
-      <span style="font-weight: 700; color: var(--color-text);">Wi-Fiかんたん診断</span>
-    </div>
 
-    {#
-      ステップ表示の置き場所。
+      {#
+      右列：ステップ表示の置き場所。
       各画面が {% block step_indicator %} を上書きすることで、
       ui.html の stepper マクロをここに差し込める。
       トップページのようにステップ表示が不要な画面は、何も上書きしなくてよい。
+      justify-self: end で右列内では右寄せにする。
     #}
-    <div>
-      {% block step_indicator %}{% endblock %}
-    </div>
-  </header>
+      <div style="justify-self: end;">
+        {% block step_indicator %}{% endblock %}
+      </div>
+    </header>
 
-  {#
+    {#
     本体（メインコンテンツ）。
     各画面テンプレートは、この content ブロックの中に画面固有の内容を書く。
     container は最大幅を決めて、大きな画面（1440px）でも文字や部品が
     横に伸びすぎないようにするための、よくあるレイアウトの工夫。
   #}
-  <main class="wifi-container" style="
+    <main class="wifi-container" style="
       max-width: 960px;
       margin: 0 auto;
       padding: var(--space-4);
     ">
-    {% block content %}{% endblock %}
-  </main>
+      {% block content %}{% endblock %}
+    </main>
 
-  {#
+    {#
     フッター：全画面共通で一番下に表示される部分。
     現時点ではサービス名の表示のみ。今後、利用規約や問い合わせ先などの
     リンクをここに追加していく想定。
   #}
-  <footer style="
+    <footer style="
       text-align: center;
       color: var(--color-text-muted);
       font-size: var(--font-size-small);
       padding: var(--space-5) var(--space-4);
     ">
-    Wi-Fiかんたん診断
-  </footer>
+      Wi-Fiかんたん診断
+    </footer>
 
-  {#
+    {#
     トースト機能を使うためのJavaScriptモジュールを読み込む。
     type="module" を付けることで、toast.js の中で使われている
     export / import（ES Modulesの機能）が使えるようになる。
@@ -151,14 +167,14 @@
     `import { showToast } from ".../toast.js"` のように
     明示的にimportして使う想定。
   #}
-  <script type="module" src="{{ url_for('static', filename='wifi/js/toast.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='wifi/js/toast.js') }}"></script>
 
-  {#
+    {#
     画面ごとに追加のJavaScriptを読み込みたい場合の差し込み穴。
     例えば診断質問画面は、選択肢クリックの処理を書いたJSファイルを
     ここで読み込む想定。
   #}
-  {% block extra_scripts %}{% endblock %}
-</body>
+    {% block extra_scripts %}{% endblock %}
+  </body>
 
 </html>

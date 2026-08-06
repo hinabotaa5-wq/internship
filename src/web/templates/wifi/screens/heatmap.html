@@ -37,22 +37,20 @@
 {% block content %}
   {{ ui.notice_banner() }}
 
-  <div style="display:flex; gap: var(--space-4);">
-    {#
-      ヒートマップキャンバス枠：電波の強さを明るさで可視化する予定。
-      CLAUDE.mdの例外規定に基づき、実装時はこの枠の内側だけ
-      var(--color-heatmap-bg) を使った暗色にする
-      （画面全体はライトのままにすること）。
-    #}
-    <div style="flex: 2;">
+  {#
+    .two-column-layout については layout.html のコメントを参照
+    （768px以上でのみ横並び、375pxのような狭い画面では縦積みにする）。
+  #}
+  <div class="two-column-layout">
+    <div class="two-column-layout__main">
+      {#
+        CLAUDE.mdの例外規定に基づき、実装時はこの枠の内側だけ
+        var(--color-heatmap-bg) を使った暗色にする
+        （画面全体はライトのままにすること）。
+      #}
       {{ ui.placeholder_frame("ヒートマップキャンバス枠（暗色になる予定・ドラッグ操作対象）", height="360px") }}
     </div>
-
-    {#
-      部屋別状況・設定枠：部屋ごとの電波レベル表示、反射ON/OFF切り替え、
-      中継機追加の操作などをここに実装する予定。
-    #}
-    <div style="width: 220px;">
+    <div class="two-column-layout__side">
       {{ ui.placeholder_frame("部屋別状況・設定枠", height="360px") }}
     </div>
   </div>

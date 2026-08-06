@@ -30,8 +30,15 @@
         {{ ui.placeholder_frame("同意チェック枠", height="44px") }}
       </div>
 
+      {#
+        主CTA枠は幅を明示していないと、右寄せ(justify-content:flex-end)の
+        親の中で枠自体が中身の文字幅まで縮んでしまい、見た目が小さくなる。
+        他の枠と同じ横幅で統一するため width:100% を明示する。
+      #}
       <div style="display:flex; justify-content:flex-end; margin-top: var(--space-3);">
-        {{ ui.placeholder_frame("主CTA枠（送信する）", height="44px") }}
+        <div style="width: 100%;">
+          {{ ui.placeholder_frame("主CTA枠（送信する）", height="44px") }}
+        </div>
       </div>
 
       {#

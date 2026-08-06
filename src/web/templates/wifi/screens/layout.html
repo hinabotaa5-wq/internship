@@ -30,19 +30,17 @@
 {% endblock %}
 
 {% block content %}
-  <div style="display:flex; gap: var(--space-4);">
-    {#
-      間取りキャンバス枠：部屋の表示・ドラッグ操作をここに実装する予定。
-      幅の割合はワイヤーフレーム（screens_and_flow.pdf）の flex2 に対応。
-    #}
-    <div style="flex: 2;">
+  {#
+    .two-column-layout は768px以上の画面幅でだけキャンバス枠とサイド
+    パネル枠を横並びにし、375pxのような狭い画面では縦積みにする
+    共通クラス（components.css参照）。CLAUDE.mdの「375px幅で横スクロール
+    しない」要件に対応するため、固定幅を直接ここに書かない。
+  #}
+  <div class="two-column-layout">
+    <div class="two-column-layout__main">
       {{ ui.placeholder_frame("間取りキャンバス枠（部屋の表示・ドラッグ操作）", height="360px") }}
     </div>
-
-    {#
-      操作パネル枠：ひな形選択・部屋追加などの操作をここに実装する予定。
-    #}
-    <div style="width: 220px;">
+    <div class="two-column-layout__side">
       {{ ui.placeholder_frame("操作パネル枠（ひな形選択・部屋追加）", height="360px") }}
     </div>
   </div>
