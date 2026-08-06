@@ -41,6 +41,9 @@
         /layout（住宅レイアウト作成。main側のFLOORPLAN_BPが提供する
         ページ構成をそのまま使う）へ直接遷移するリンク。
         url_for() でルートを解決する（CLAUDE.md 規則5）。
+
+        質問だけで診断する（/diagnosis/ への入口）は撤去し、
+        間取りから診断する経路のみをトップページの入口として残す。
       #}
       <a href="{{ url_for('app.floorplan.layout') }}" style="
           display:inline-block;
@@ -55,27 +58,6 @@
           border-radius:8px;
         ">
         間取りから診断する
-      </a>
-
-      {#
-        /diagnosis/（診断開始画面。main側のDIAGNOSIS_BPが提供する
-        ページ構成をそのまま使う）へ直接遷移するリンク。
-        間取りを作らずに、質問だけで診断を始められる入口。
-      #}
-      <a href="{{ url_for('app.diagnosis.start') }}" style="
-          display:inline-block;
-          min-width:220px;
-          text-align:center;
-          padding:12px 24px;
-          background-color:#ffffff;
-          color:#2563eb;
-          font-weight:700;
-          font-size:16px;
-          text-decoration:none;
-          border:2px solid #2563eb;
-          border-radius:8px;
-        ">
-        質問だけで診断する
       </a>
     </div>
   </div>

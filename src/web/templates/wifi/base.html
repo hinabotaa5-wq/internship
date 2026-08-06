@@ -97,8 +97,18 @@
       border-bottom: 1px solid var(--color-border);
     ">
 
-      {# 左列：現状は空。ヘッダーの3列構成を保つためのプレースホルダー。 #}
-      <div></div>
+      {#
+      左列：@niftyへの外部リンクロゴ。
+      justify-self: start で左列内では左寄せにする。
+      外部サイトへのリンクのため url_for() では解決できず、固定URLを直接書く。
+    #}
+      <a href="https://csoption.nifty.com/myapp/" style="justify-self: start; display: flex; align-items: center;">
+        <img
+          src="{{ url_for('static', filename='images/nifty-logo.png') }}"
+          alt="@nifty"
+          style="height: 28px; width: auto;"
+        >
+      </a>
 
       {#
       中央列：製品名ロゴ「Heat Mafty」。
