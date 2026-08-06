@@ -10,6 +10,7 @@
 
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
+from ..session import update_diagnosis_session
 from . import engine
 
 DIAGNOSIS_BP = Blueprint(
@@ -116,6 +117,9 @@ def answer():
             step["cause_id"], answers, session[SESSION_KEY_DIAGNOSIS_ID]
         )
         session[SESSION_KEY_RESULT] = result
+        # 送信内容の確認ページ・オペレーター用ページから参照できるよう、
+        # 診断セッション（web.session）にも同じ結果を反映する。
+        update_diagnosis_session(qa_history=answers, diagnosis_result=result)
         return redirect(url_for("app.diagnosis.result"))
 
     session[SESSION_KEY_CURRENT_QUESTION_ID] = step["next_question_id"]
