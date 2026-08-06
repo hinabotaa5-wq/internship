@@ -429,6 +429,27 @@ def validate_answer(question_id: str, answer_id: str) -> bool:
     return any(option["id"] == answer_id for option in question["options"])
 
 
+def describe_answer(question_id: str, answer_id: str) -> dict:
+    """質問IDと回答IDに、日本語の質問文・回答ラベルを添えた辞書を返す。
+
+    コールセンター向け照会画面などでID表示にならないよう、qa_history保存時に使う。
+    """
+    question = get_question(question_id)
+    question_text = question["text"] if question else question_id
+    answer_label = answer_id
+    if question is not None:
+        for option in question["options"]:
+            if option["id"] == answer_id:
+                answer_label = option["label"]
+                break
+    return {
+        "question_id": question_id,
+        "answer_id": answer_id,
+        "question_text": question_text,
+        "answer_label": answer_label,
+    }
+
+
 def _prior_answer(answer_history: list[dict], question_id: str) -> str | None:
     """回答履歴から、指定した質問IDへの回答を探す。"""
     for entry in answer_history:

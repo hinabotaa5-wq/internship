@@ -68,7 +68,7 @@
         <h2 class="diagnosis-result-heading">これまでの回答</h2>
         <ul class="diagnosis-answers-list">
           {% for entry in result.answers %}
-            <li>{{ entry.question_id }}: {{ entry.answer_id }}</li>
+            <li>{{ entry.question_text or entry.question_id }}: {{ entry.answer_label or entry.answer_id }}</li>
           {% endfor %}
         </ul>
       </section>

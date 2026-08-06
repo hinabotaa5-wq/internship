@@ -60,13 +60,15 @@ export function renderMarkdown(container, markdown) {
 const CONFIDENCE_TEXT = { high: "高い", medium: "中程度", low: "低い" };
 
 // qa_history（診断の質問・回答履歴）をMarkdownテキストに変換する。
-// [{question_id, answer_id}, ...] の形式を前提にしている。
+// [{question_id, answer_id, question_text, answer_label}, ...] の形式を前提にしている。
+// question_text/answer_label が無い古いデータ（日本語化前に保存されたticket）は
+// question_id/answer_idのIDをそのまま表示する。
 export function qaHistoryToMarkdown(qaHistory) {
   if (!qaHistory || !qaHistory.length) {
     return "## Q&A回答履歴\n\n回答履歴はありません。";
   }
   const items = qaHistory
-    .map((entry) => `- **${entry.question_id}**: ${entry.answer_id}`)
+    .map((entry) => `- **${entry.question_text ?? entry.question_id}**: ${entry.answer_label ?? entry.answer_id}`)
     .join("\n");
   return `## Q&A回答履歴\n\n${items}`;
 }

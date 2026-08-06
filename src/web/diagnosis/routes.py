@@ -107,7 +107,7 @@ def answer():
         )
 
     answers = session[SESSION_KEY_ANSWERS]
-    answers.append({"question_id": question_id, "answer_id": answer_id})
+    answers.append(engine.describe_answer(question_id, answer_id))
     session[SESSION_KEY_ANSWERS] = answers
 
     step = engine.determine_next_step(question_id, answer_id, answers)
