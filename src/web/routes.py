@@ -81,11 +81,8 @@ def support_id():
     diagnosis_state = get_diagnosis_session()
     return render_template("support_id.html", diagnosis_state=diagnosis_state)
 
-# 以下、mainマージで取り込まれた次の2ルートは、いずれも本ブランチの
-# 対象スコープ外（今回は診断質問(diagnosis)のみを統合する）のため、
-# いったんこのファイルから削除した:
-#   - /test-ticket（担当A: Ticket API動作確認ページ）
-#   - /staff/tickets（担当A: コールセンター向け照会ページ）
-# これらの機能自体（web/tickets.py, テンプレート）は
-# ファイルとしては取り込まれているので、Ticket機能を統合する別タスクで
-# あらためて対応する。
+
+@APP_BP.route("/staff/tickets")
+def staff_ticket():
+    logging.debug("コールセンター向け問い合わせ照会ページにアクセスされました")
+    return render_template("staff_ticket.html")
