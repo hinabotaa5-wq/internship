@@ -72,11 +72,9 @@
 
       <p class="diagnosis-id">診断ID: {{ result.diagnosis_id }}</p>
 
-      <form method="post" action="{{ url_for('app.diagnosis.restart') }}">
-        <button type="submit" class="diagnosis-button diagnosis-button--primary">
-          診断を最初からやり直す
-        </button>
-      </form>
+      <a href="{{ url_for('app.wifi.support_id') }}" class="diagnosis-button diagnosis-button--primary">
+        送信確認に進む
+      </a>
 
       {#
         統合の都合上、リンク先を app.index から app.wifi.top に変更している。
