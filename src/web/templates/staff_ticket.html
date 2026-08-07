@@ -90,7 +90,7 @@
         <dt class="col-sm-2">受付番号</dt>
         <dd class="col-sm-10">${data.ticket_number}</dd>
         <dt class="col-sm-2">受付日時</dt>
-        <dd class="col-sm-10">${data.created_at}</dd>
+        <dd class="col-sm-10">${new Date(data.created_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}</dd>
       `;
       container.appendChild(summary);
 

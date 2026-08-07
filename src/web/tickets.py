@@ -63,6 +63,6 @@ def get_ticket(ticket_number: str):
             "room_layout": ticket.room_layout,
             "qa_history": ticket.qa_history,
             "diagnosis_result": ticket.diagnosis_result,
-            "created_at": ticket.created_at.isoformat(),
+            "created_at": ticket.created_at.isoformat() + "+00:00",
         }
     )
