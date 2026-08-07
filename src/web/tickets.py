@@ -1,5 +1,7 @@
 import logging
 import secrets
+from datetime import timezone
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint, abort, jsonify, request
 from sqlalchemy.exc import IntegrityError
@@ -7,6 +9,10 @@ from sqlalchemy.exc import IntegrityError
 from .models import DB, Ticket
 
 TICKETS_BP = Blueprint("tickets", __name__, url_prefix="/api/tickets")
+
+# DB (MySQL) の NOW() はサーバーのタイムゾーン(UTC)で記録されるため、
+# 表示時に日本時間(JST)へ変換する
+_JST = ZoneInfo("Asia/Tokyo")
 
 # 電話で聞き取りやすいように、見間違いやすい文字 (0/O, 1/I/L, 2/Z, 9/Q) を除いた文字集合を使う
 _TICKET_NUMBER_ALPHABET = "ABCDEFGHJKMNPRSTUVWXY345678"
@@ -63,6 +69,8 @@ def get_ticket(ticket_number: str):
             "room_layout": ticket.room_layout,
             "qa_history": ticket.qa_history,
             "diagnosis_result": ticket.diagnosis_result,
-            "created_at": ticket.created_at.isoformat() + "+00:00",
+            "created_at": ticket.created_at.replace(tzinfo=timezone.utc)
+            .astimezone(_JST)
+            .isoformat(),
         }
     )
