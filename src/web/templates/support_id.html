@@ -38,7 +38,13 @@
             <dt class="col-sm-3">考えられる原因</dt>
             <dd class="col-sm-9">{{ diagnosis_state.diagnosis_result.cause_name }}</dd>
             <dt class="col-sm-3">確信度</dt>
-            <dd class="col-sm-9">{{ diagnosis_state.diagnosis_result.confidence }}</dd>
+            <dd class="col-sm-9">
+              {% set confidence = diagnosis_state.diagnosis_result.confidence %}
+              {% if confidence == "high" %}高い
+              {% elif confidence == "medium" %}中程度
+              {% elif confidence == "low" %}低い
+              {% else %}{{ confidence }}{% endif %}
+            </dd>
             <dt class="col-sm-3">判断理由</dt>
             <dd class="col-sm-9">{{ diagnosis_state.diagnosis_result.reason }}</dd>
           </dl>
