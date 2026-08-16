@@ -1,28 +1,36 @@
-# ニフティ 5days インターン 2026 ベースリポジトリ
+# Wi-Fi 診断アプリ
 
-このリポジトリはニフティの 5days 開発インターンで利用するテンプレートです。
-開発にスムーズに入れるようにするためのテンプレートであって、必ずしもこのスタイルに添う必要はありません。
+Wi-Fi 接続問題を解決するための診断 Web アプリケーションです。ユーザーは質問に答えることで原因を特定し、住宅レイアウトを作成してルーター配置をシミュレーションし、ヒートマップで電波状況を可視化できます。
 
 # 概要
 
-Flask + Bootstrap + MySQL を使用した Web アプリケーションです。
-Bootstrap のサンプルとして使えそうなパーツを集めたサンプルページと、必要ならユーザー認証機能を用意しています。
+Flask + Bootstrap + MySQL を使用した Web アプリケーションです。以下の機能を提供しています：
+
+- **原因切り分け診断**: 質問形式で Wi-Fi トラブルの原因を特定
+- **住宅レイアウト作成**: 部屋の形状とルーター位置を視覚的に配置
+- **ヒートマップ表示**: Wi-Fi 電波強度を可視化し、改善提案を提供
+- **問い合わせ受付**: 診断結果と間取りデータを含めた問い合わせチケット発行
+- **ユーザー認証**: ログイン機能によるユーザー管理
 
 ## フォルダ構成
 
 ```
 .
-├── migrations/ # データベースマイグレーションファイル
+├── migrations/          # データベースマイグレーションファイル
 ├── src/
-│ ├── web/
-│ ├── auth/ # 認証関連のモジュール
-│ ├── templates/ # HTMLテンプレート
-│ ├── __init__.py
-│ ├── app.py # アプリケーションファクトリ
-│ ├── config.py # 設定ファイル
-│ ├── models.py # データベースモデル
-│ └── routes.py # ルーティング
-├── pyproject.toml # プロジェクト設定ファイル
+│   ├── web/
+│   │   ├── auth/       # 認証関連のモジュール
+│   │   ├── diagnosis/  # 原因切り分け診断機能
+│   │   ├── floorplan/  # 住宅レイアウト・ルーター配置機能
+│   │   ├── heatmap/    # ヒートマップ表示機能
+│   │   ├── wifi/       # Wi-Fi 診断メイン画面
+│   │   ├── templates/  # HTMLテンプレート
+│   │   ├── static/     # CSS・JS・画像ファイル
+│   │   ├── app.py      # アプリケーションファクトリ
+│   │   ├── config.py   # 設定ファイル
+│   │   ├── models.py   # データベースモデル
+│   │   └── routes.py   # ルーティング
+├── pyproject.toml       # プロジェクト設定ファイル
 └── README.md
 ```
 
@@ -45,118 +53,59 @@ Bootstrap のサンプルとして使えそうなパーツを集めたサンプ�
 1. プロジェクトフォルダを VS Code で開きます。
 1. 左下の `><` ボタンを押し、現れたメニューから "コンテナで再度開く" (または "Reopen in Container") を選択します。
    - VS Code が Dev Containers を自動的に構築しますが、これには数分かかる場合があります。
-   - この過程でなにか問題が発生した場合は遠慮なくメンターに確認してください。
 1. VS Code の準備ができたら <http://localhost:18347/> にアクセスできるか確認してください。
-   - VS Code の左側にフォルダ構成のツリーが表示されている状態になれば準備はできているはずです。
 
 > [!Note]
 >
-> VS Code で Python のコードを開いたときに import に大量の赤線が現れる場合はインタプリタを指定してあげる必要があります。VS Code の右下にある、図のようなバージョン表示のボタンをクリックしてください。 (あるいは黄色で「インタプリタを選択」のようなボタンになっているかもしれません。)
-> ![インタプリタを選ぶボタン](readme_assets/select_interpreter.png)
-> 押すといくつかの選択肢が表示されると思いますが、ここから `.venv/bin/python` が含まれているものを選んでください。
-> ![インタプリタのピッカー](readme_assets/pick_interpreter.png)
+> VS Code で Python のコードを開いたときに import に大量の赤線が現れる場合はインタプリタを指定してあげる必要があります。VS Code の右下にあるバージョン表示のボタンをクリックし、`.venv/bin/python` が含まれているものを選んでください。
 
-## AI(Claude Code)を使った開発
+## 主な機能
 
-この開発環境には [Claude Code](https://docs.anthropic.com/claude-code) が AWS Bedrock 経由で利用できるよう用意されています。
+### 原因切り分け診断
+ユーザーが Wi-Fi トラブルに関する質問に答えることで、問題の原因を特定します。質問フローは動的に管理され、ユーザーの回答に基づいて次の質問が表示されます。
 
-### 準備
+### 住宅レイアウト作成
+ユーザーは部屋の形状をドラッグ＆ドロップで作成し、ルーターの配置位置を設定できます。レイアウトデータは JSON 形式で保存され、ヒートマップ生成に使用されます。
 
-1. メンターから DM で配布された **Bedrock APIキー** を用意します。
-1. `.devcontainer/.env.example` を `.devcontainer/.env` にコピーします。
+### ヒートマップ表示
+住宅レイアウトとルーター位置に基づいて、Wi-Fi 電波強度のヒートマップを生成します。電波が弱いエリアを視覚的に確認し、ルーター配置の改善提案を提供します。
 
-   ```bash
-   cp .devcontainer/.env.example .devcontainer/.env
-   ```
+### 問い合わせ受付
+診断結果と間取りデータを含めた問い合わせチケットを発行します。スタッフ側はチケット番号で問い合わせ内容を確認できます。
 
-1. `.devcontainer/.env` を開き、`AWS_BEARER_TOKEN_BEDROCK=` の後ろに配布されたキーを貼り付けます。
-1. Dev Container を再起動(リビルド)します。
-   - VS Code 左下の `><` →「コンテナーのリビルド」(Rebuild Container)。
+## データベース設計
 
-> [!Note]
->
-> - `.env` は git 管理外です。キーは他人に共有しないでください。
-> - **利用できる時間帯はインターンの開催時間内のみ**に制限されています(CodeCommit と同じ)。時間外はエラーになります。
-> - 入力したプロンプトはログに記録されます(利用目的・取り扱いは別途案内します)。
+### Ticket モデル
+問い合わせデータを管理します。以下の情報を保存します：
+- `ticket_number`: ユニークな問い合わせ番号
+- `room_layout`: 住宅レイアウトデータ（JSON）
+- `qa_history`: Q&A 回答履歴（JSON）
+- `diagnosis_result`: 原因切り分け診断の結果（JSON、任意）
+- `created_at`: 作成日時
 
-### 使い方
-
-コンテナのターミナルで以下を実行します。
-
-```bash
-claude
-```
-
-利用するモデルは東京リージョンの推論プロファイル(`jp.anthropic.claude-*`)が既定で設定されています(`.devcontainer/compose.yml` の `ANTHROPIC_MODEL` 等)。
-
-## プロジェクトのカスタマイズ
-
-### 最初に表示される画面の修正
-
-1. src/web/templates/index.html ファイルを編集します。このファイルがホームページのテンプレートです。
-1. HTML を修正して、希望するコンテンツや構造に変更します。
-1. スタイルを変更したい場合は、CSS ファイルを作成し、テンプレートにリンクします。
-1. 動的なコンテンツを追加したい場合は `src/web/routes.py` の index 関数を編集し、必要なデータをテンプレートに渡します。
-
-#### 注意:　`<a>, <img>, <link>, <script>`, ... などでの絶対パスについての注意喚起
-
-ローカル環境と AWS 環境ではパスが異なります (割と重要情報)
-
-- ローカル: `/foo/bar/baz`
-- AWS: `/team-X/foo/bar/baz`
-
-`url_for()` 関数を利用してください
-
-- `<img src="/static/foo/bar.png">` → `<img src="{{ url_for('static', filename='foo/bar.png') }}">`
-- `<a href="/auth/login">` → `<img src="{{ url_for('app.auth.login') }}">`
-  - APP_BP 以下なら app.XXXX
-  - AUTH_BP 以下なら app.auth.XXXX
-
-### ログイン機能の追加
-
-詳しくは[ログイン機能の追加方法](docs/how_to_implement_auth.md)を確認してください。
-
-### データベースの修正
-
-**注意**: マイグレーションファイルは git で共有するので、複数人で同時にデータベースのモデルを修正するタスクを行わないでください。
-
-詳しくは[データベースに追加の情報を保存する方法](docs/how_to_edit_models.md)を参照してください。
-
-### 依存関係の追加
+## 依存関係の追加
 
 1. `pyproject.toml` の `dependencies`（開発用ツールなら `[dependency-groups]` の `dev`）にパッケージ名を追記します。
 
-   - (例) `new-package` パッケージを追加する場合
-     ```diff
-      dependencies = [
-          "Flask~=3.0.3",
-     +    "new-package",
-      ]
-     ```
+2. 以下のコマンドを実行してロックファイルを更新します：
 
-1. 以下のコマンドを実行してロックファイル（`requirements.lock` / `requirements-dev.lock`）を更新し、コミットします。
-
-   ```
+   ```bash
    uv pip compile pyproject.toml -o requirements.lock
    uv pip compile pyproject.toml --group dev -o requirements-dev.lock
    ```
 
-1. (それを `git pull` してきた人は) 以下のコマンドを実行して新しい依存関係をインストールします：
+3. 新しい依存関係をインストールします：
 
-   ```
+   ```bash
    uv pip sync --python .venv/bin/python requirements-dev.lock
    ```
 
-1. そのままコードを編集すれば適宜新しいパッケージが利用できるようになっているはずです。
+## アプリケーション起動
 
-   アプリケーションは Python のコードが編集されたタイミングで自動的に再起動されるので、手動で再起動する必要はないはずです。
+開発環境では、コードの編集時に自動的に再起動されます。手動で起動する場合は以下のコマンドを使用してください。
 
-### FAQ
+```bash
+python -m src.web.app
+```
 
-- Q. `print()` 関数の結果はどこに表示されますか。
-  - A. まず `print()` の代わりに `logging.debug()` を利用してください。アプリのログは Docker Desktop のダッシュボードから確認できます。詳しくは[こちらのドキュメント](docs/how_to_debug.md)を参照ください。
-- Q. ユーザー情報にフルネームなど追加の情報を保存したいです。
-  - A. 単純にユーザーモデルに追加するのであれば、`src/web/auth/models.py` の `User` モデルを修正し、Flask-Migrate で反映します。[こちらのドキュメント](docs/how_to_add_additional_user_info.md)も参考まで。
-
-###　起動用
-- http://localhost:18347/
+アプリケーションは <http://localhost:18347/> でアクセスできます。
